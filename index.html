@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Afterglow is a small social space for conversations with a natural ending." />
+  <title>Afterglow — keep the moment, not the archive</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Afterglow home"><span class="brand-mark">✦</span> afterglow</a>
+    <nav class="top-actions" aria-label="App controls">
+      <button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle theme">◐</button>
+      <button class="avatar avatar-small" id="profile-button" type="button" aria-label="Open profile">DC</button>
+    </nav>
+  </header>
+
+  <main id="top" class="shell">
+    <section class="intro-grid">
+      <div>
+        <p class="eyebrow">A finite social network</p>
+        <h1>Good things<br /><em>can end.</em></h1>
+        <p class="lede">Share a thought, a photo, or a small moment. Afterglow gives it room to breathe — then lets it go.</p>
+      </div>
+      <div class="manifesto-card">
+        <span class="card-kicker">The promise</span>
+        <p>Nothing here is meant to become a backlog.</p>
+        <div class="manifesto-meta"><span>no archive</span><span>no infinite scroll</span></div>
+      </div>
+    </section>
+
+    <section class="composer-card" aria-labelledby="composer-title">
+      <div class="composer-head">
+        <div class="avatar">DC</div>
+        <div><h2 id="composer-title">Leave something here</h2><p>Make it worth a short visit.</p></div>
+      </div>
+      <form id="post-form">
+        <label class="sr-only" for="post-text">What is on your mind?</label>
+        <textarea id="post-text" maxlength="420" placeholder="A small thought, a question, a photo caption…" required></textarea>
+        <div class="composer-footer">
+          <span id="char-count">0 / 420</span>
+          <div class="composer-controls">
+            <label class="expiry-label" for="expiry-select">Lives for
+              <select id="expiry-select"><option value="24">24 hours</option><option value="72">3 days</option><option value="168" selected>7 days</option></select>
+            </label>
+            <button class="button button-dark" type="submit">Share moment <span>↗</span></button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="feed-section" aria-labelledby="feed-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">Right now</p><h2 id="feed-title">The living room</h2></div>
+        <div class="feed-filters" role="group" aria-label="Feed filters"><button class="filter active" data-filter="all">All</button><button class="filter" data-filter="ending">Ending soon</button><button class="filter" data-filter="mine">Yours</button></div>
+      </div>
+      <div id="feed" class="feed" aria-live="polite"></div>
+      <div id="empty-state" class="empty-state" hidden><span>✦</span><p>Nothing is glowing here yet.</p><button class="button button-outline" id="reset-filter" type="button">See everything</button></div>
+    </section>
+  </main>
+
+  <footer class="footer"><span>afterglow / a quieter kind of social</span><span>your moments are yours</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
