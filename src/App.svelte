@@ -195,11 +195,8 @@
     />
 
     <section class="feed-section" aria-labelledby="feed-title">
-      <div class="section-heading">
-        <div class="heading-title-wrap">
-          <p class="eyebrow">Right now</p>
-          <h2 id="feed-title">The living room</h2>
-        </div>
+      <h2 id="feed-title" class="sr-only">Feed</h2>
+      <div class="feed-nav-bar">
         <FeedFilters
           activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
@@ -209,7 +206,7 @@
       {#if isLoading}
         <div class="loading-state">
           <span class="spinner" aria-hidden="true"></span>
-          <p>Listening for active moments…</p>
+          <p>Loading moments…</p>
         </div>
       {:else if fetchError}
         <div class="error-state" role="alert">
@@ -220,11 +217,8 @@
         </div>
       {:else if posts.length === 0}
         <div id="empty-state" class="empty-state">
-          <div class="empty-icon-wrap">
-            <Icon name="spark" size={24} />
-          </div>
-          <p class="empty-title">Nothing is glowing here yet.</p>
-          <p class="empty-subtitle">Moments naturally fade when their time arrives. Start a new thought above.</p>
+          <p class="empty-title">No moments here yet.</p>
+          <p class="empty-subtitle">Moments naturally dissolve when their time arrives.</p>
           {#if activeFilter !== 'all'}
             <button
               class="reset-btn"
@@ -347,34 +341,12 @@
     border-color: var(--line);
   }
 
-  .section-heading {
+  .feed-nav-bar {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 24px;
-    gap: 16px;
-    flex-wrap: wrap;
+    align-items: center;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 14px;
-  }
-
-  .heading-title-wrap h2 {
-    font-family: var(--sans);
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin: 4px 0 0;
-  }
-
-  .eyebrow {
-    color: var(--amber);
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin: 0;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
   }
 
   .feed {
@@ -390,15 +362,14 @@
     align-items: center;
     gap: 12px;
     color: var(--muted);
-    font-family: var(--mono);
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .spinner {
     width: 20px;
     height: 20px;
     border: 2px solid var(--line);
-    border-top-color: var(--amber);
+    border-top-color: var(--ink);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
@@ -407,7 +378,7 @@
     padding: 24px;
     background: var(--danger-soft);
     border: 1px solid var(--danger);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xs);
     text-align: center;
     color: var(--danger);
     font-size: 13px;
@@ -420,38 +391,20 @@
     color: #fff;
     border-radius: var(--radius-xs);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .empty-state {
-    padding: 56px 20px;
+    padding: 48px 20px;
     text-align: center;
-    background: var(--surface);
-    border: 1px dashed var(--line);
-    border-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  .empty-icon-wrap {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-xs);
-    background: var(--surface-subtle);
-    color: var(--amber);
-    border: 1px solid var(--amber);
-    box-shadow: var(--amber-glow);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 14px;
-  }
-
   .empty-title {
-    font-family: var(--sans);
-    font-size: 16px;
-    font-weight: 600;
+    font-family: var(--serif);
+    font-size: 18px;
     color: var(--ink);
     margin: 0 0 6px;
   }
@@ -459,34 +412,32 @@
   .empty-subtitle {
     font-size: 13px;
     color: var(--muted);
-    max-width: 360px;
+    max-width: 320px;
     margin: 0 0 16px;
     line-height: 1.45;
   }
 
   .reset-btn {
     padding: 5px 12px;
-    background: var(--surface-subtle);
+    background: transparent;
     color: var(--ink);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-xs);
-    font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     transition: all var(--transition-fast);
   }
 
   .reset-btn:hover {
-    background: var(--surface-hover);
+    background: var(--surface-subtle);
   }
 
   .footer {
     border-top: 1px solid var(--line);
-    padding: 20px 0;
-    font-family: var(--mono);
+    padding: 24px 0 36px;
     font-size: 11px;
     color: var(--muted);
-    background: var(--surface);
+    background: transparent;
   }
 
   .footer-inner {
