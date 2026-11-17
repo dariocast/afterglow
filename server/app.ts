@@ -1,6 +1,10 @@
 import { Hono } from 'hono';
+import { authRouter } from './routes/auth';
+import { sessionMiddleware } from './auth/session';
 
 export const app = new Hono();
+
+app.use('*', sessionMiddleware);
 
 app.get('/api/health', (c) => {
   return c.json({
@@ -8,3 +12,5 @@ app.get('/api/health', (c) => {
     timestamp: Date.now(),
   });
 });
+
+app.route('/api/auth', authRouter);
