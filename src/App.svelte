@@ -8,7 +8,6 @@
   import FeedFilters from './components/FeedFilters.svelte';
   import PostCard from './components/PostCard.svelte';
   import PasskeyAuthModal from './components/PasskeyAuthModal.svelte';
-  import PwaInstallModal from './components/PwaInstallModal.svelte';
   import Icon from './components/icons/Icon.svelte';
   import { pwaStore } from './lib/pwa.svelte';
 
@@ -22,6 +21,21 @@
   // Auth modal state
   let isAuthModalOpen = $state(false);
   let authMode = $state<'login' | 'register'>('register');
+  let iosNotice = $state(false);
+
+  async function handleMobileInstall() {
+    if (pwaStore.deferredPrompt) {
+      await pwaStore.promptInstall();
+      pwaStore.dismissBanner();
+    } else if (pwaStore.isIosSafari) {
+      iosNotice = true;
+      setTimeout(() => {
+        pwaStore.dismissBanner();
+      }, 4000);
+    } else {
+      pwaStore.dismissBanner();
+    }
+  }
 
   // Initialize theme and load initial data
   $effect(() => {
@@ -167,35 +181,29 @@
     onToggleTheme={toggleTheme}
     onAuthClick={() => openAuthModal('register')}
     onLogout={handleLogout}
-    onInstallClick={() => pwaStore.openInstallModal()}
   />
 
   {#if !pwaStore.isStandalone && !pwaStore.isDismissed && pwaStore.canInstall}
-    <div class="pwa-banner" role="region" aria-label="Progressive Web App prompt">
-      <div class="shell pwa-banner-inner">
-        <div class="pwa-banner-text">
-          <Icon name="device" size={15} />
-          <span>Add Afterglow to your home screen for instant launch and offline access.</span>
-        </div>
-        <div class="pwa-banner-actions">
-          <button
-            class="pwa-banner-btn primary"
-            type="button"
-            onclick={() => pwaStore.openInstallModal()}
-          >
-            Install app
+    <aside class="mobile-pwa-overlay" role="region" aria-label="Install Afterglow">
+      <div class="overlay-content">
+        {#if iosNotice}
+          <span class="overlay-text">Tap Share then Add to Home Screen</span>
+        {:else}
+          <button class="overlay-install-btn" type="button" onclick={handleMobileInstall}>
+            <Icon name="device" size={13} />
+            <span>Install app</span>
           </button>
-          <button
-            class="pwa-banner-btn dismiss"
-            type="button"
-            onclick={() => pwaStore.dismissBanner()}
-            aria-label="Dismiss installation prompt"
-          >
-            <Icon name="close" size={14} />
-          </button>
-        </div>
+        {/if}
       </div>
-    </div>
+      <button
+        class="overlay-dismiss-btn"
+        type="button"
+        onclick={() => pwaStore.dismissBanner()}
+        aria-label="Dismiss installation prompt"
+      >
+        <Icon name="close" size={13} />
+      </button>
+    </aside>
   {/if}
 
   <main id="top" class="shell">
@@ -287,11 +295,6 @@
     onClose={closeAuthModal}
     onSuccess={handleAuthSuccess}
   />
-
-  <PwaInstallModal
-    isOpen={pwaStore.isModalOpen}
-    onClose={() => pwaStore.closeInstallModal()}
-  />
 </div>
 
 <style>
@@ -306,52 +309,59 @@
     padding-bottom: 80px;
   }
 
-  .pwa-banner {
-    background: var(--surface-subtle);
-    border-bottom: 1px solid var(--line);
-    padding: 8px 0;
-    animation: fadeIn 0.2s ease-out;
-  }
-
-  .pwa-banner-inner {
+  .mobile-pwa-overlay {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    max-width: 340px;
+    margin: 0 auto;
+    z-index: 100;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    box-shadow: var(--shadow-md);
+    padding: 8px 12px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    animation: slideUp 0.2s ease-out;
   }
 
-  .pwa-banner-text {
+  @media (min-width: 641px) {
+    .mobile-pwa-overlay {
+      display: none !important;
+    }
+  }
+
+  .overlay-content {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: var(--ink-secondary);
   }
 
-  .pwa-banner-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .pwa-banner-btn.primary {
-    padding: 5px 10px;
-    background: var(--amber);
-    color: #0a0b0e;
-    border-radius: var(--radius-xs);
+  .overlay-text {
     font-size: 11px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .overlay-install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    padding: 4px 6px;
+    font-size: 12px;
     font-weight: 600;
-    border: 1px solid var(--amber);
-    box-shadow: var(--amber-glow);
-    transition: opacity var(--transition-fast);
+    color: var(--ink);
+    cursor: pointer;
   }
 
-  .pwa-banner-btn.primary:hover {
-    opacity: 0.9;
-  }
-
-  .pwa-banner-btn.dismiss {
+  .overlay-dismiss-btn {
     width: 24px;
     height: 24px;
     border-radius: var(--radius-xs);
@@ -359,14 +369,19 @@
     align-items: center;
     justify-content: center;
     color: var(--muted);
-    border: 1px solid transparent;
-    transition: all var(--transition-fast);
+    border: none;
+    background: transparent;
+    cursor: pointer;
   }
 
-  .pwa-banner-btn.dismiss:hover {
+  .overlay-dismiss-btn:hover {
     color: var(--ink);
-    background: var(--surface);
-    border-color: var(--line);
+    background: var(--surface-subtle);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 
   .feed-nav-bar {

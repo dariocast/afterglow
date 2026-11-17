@@ -1,6 +1,5 @@
 <script lang="ts">
   import { authStore } from '../lib/auth.svelte';
-  import { pwaStore } from '../lib/pwa.svelte';
   import type { User } from '../lib/api';
   import Icon from './icons/Icon.svelte';
 
@@ -53,19 +52,6 @@
     </a>
 
     <nav class="top-actions" aria-label="App controls">
-      {#if !pwaStore.isStandalone}
-        <button
-          class="nav-action-btn install-btn"
-          type="button"
-          onclick={() => { if (onInstallClick) onInstallClick(); else pwaStore.openInstallModal(); }}
-          aria-label="Install web application"
-          title="Install Afterglow"
-        >
-          <Icon name="device" size={13} />
-          <span class="install-label">App</span>
-        </button>
-      {/if}
-
       <button
         class="icon-button"
         id="theme-toggle"
@@ -165,25 +151,6 @@
     gap: 8px;
   }
 
-  .nav-action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 9px;
-    border-radius: var(--radius-xs);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--ink-secondary);
-    background: transparent;
-    border: 1px solid var(--line);
-    transition: all var(--transition-fast);
-  }
-
-  .nav-action-btn:hover {
-    background: var(--surface-subtle);
-    color: var(--ink);
-  }
-
   .icon-button {
     width: 30px;
     height: 30px;
@@ -272,9 +239,6 @@
   }
 
   @media (max-width: 600px) {
-    .install-label {
-      display: none;
-    }
     .user-name {
       display: none;
     }
