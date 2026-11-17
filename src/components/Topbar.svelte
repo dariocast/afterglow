@@ -10,6 +10,7 @@
     onAuthClick?: () => void;
     onLogout?: () => void;
     onInstallClick?: () => void;
+    onProfileClick?: (username: string) => void;
   }
 
   let {
@@ -19,6 +20,7 @@
     onAuthClick,
     onLogout,
     onInstallClick,
+    onProfileClick,
   }: Props = $props();
 
   let activeUser = $derived(currentUser !== undefined ? currentUser : authStore.currentUser);
@@ -69,10 +71,22 @@
 
       {#if activeUser}
         <div class="user-menu">
-          <span class="avatar avatar-small" title={activeUser.displayName || activeUser.username}>
-            {userInitials}
-          </span>
-          <span class="user-name">@{activeUser.username}</span>
+          <button
+            class="profile-trigger"
+            type="button"
+            onclick={() => onProfileClick?.(activeUser.username)}
+            aria-label="View @{activeUser.username}'s profile"
+            title="View profile (@{activeUser.username})"
+          >
+            <span
+              class="avatar avatar-small"
+              style={activeUser.avatarColor ? `background-color: ${activeUser.avatarColor}` : ''}
+              title={activeUser.displayName || activeUser.username}
+            >
+              {userInitials}
+            </span>
+            <span class="user-name">@{activeUser.username}</span>
+          </button>
           <button
             class="logout-button"
             type="button"
@@ -175,6 +189,22 @@
     align-items: center;
     gap: 8px;
     padding-left: 4px;
+  }
+
+  .profile-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: var(--radius-xs);
+    transition: opacity var(--transition-fast);
+  }
+
+  .profile-trigger:hover {
+    opacity: 0.8;
   }
 
   .avatar {

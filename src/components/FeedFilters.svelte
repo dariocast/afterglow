@@ -13,6 +13,7 @@
 
   const filters: { id: FeedFilter; label: string }[] = [
     { id: 'all', label: 'All' },
+    { id: 'following', label: 'Following' },
     { id: 'ending', label: 'Ending soon' },
     { id: 'mine', label: 'Yours' },
   ];

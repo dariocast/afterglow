@@ -11,6 +11,7 @@
     onRequestAuth?: () => void;
     ondelete?: (id: string) => void;
     onDelete?: (id: string) => void;
+    onAuthorClick?: (username: string) => void;
   }
 
   let {
@@ -22,6 +23,7 @@
     onRequestAuth,
     ondelete,
     onDelete,
+    onAuthorClick,
   }: Props = $props();
 
   const isAuthor = $derived(Boolean(currentUserId && currentUserId === post.authorId));
@@ -133,14 +135,44 @@
 >
   <div class="post-layout">
     <div class="post-avatar-col">
-      <div class="avatar" aria-hidden="true">{initials}</div>
+      {#if onAuthorClick && post.author?.username}
+        <button
+          class="avatar author-btn"
+          type="button"
+          onclick={() => onAuthorClick?.(post.author.username)}
+          aria-label="View @{post.author.username}'s profile"
+          style={post.author?.avatarColor ? `background-color: ${post.author.avatarColor}` : ''}
+        >
+          {initials}
+        </button>
+      {:else}
+        <div
+          class="avatar"
+          style={post.author?.avatarColor ? `background-color: ${post.author.avatarColor}` : ''}
+          aria-hidden="true"
+        >
+          {initials}
+        </div>
+      {/if}
     </div>
 
     <div class="post-main-col">
       <div class="post-header">
         <div class="author-info">
-          <span class="author-name">{post.author?.displayName || 'Anonymous'}</span>
-          <span class="author-handle">@{post.author?.username || 'user'}</span>
+          {#if onAuthorClick && post.author?.username}
+            <button
+              class="author-btn author-name-btn"
+              type="button"
+              onclick={() => onAuthorClick?.(post.author.username)}
+              aria-label="View @{post.author.username}'s profile"
+            >
+              <span class="author-name">{post.author?.displayName || 'Anonymous'}</span>
+              <span class="author-handle">@{post.author?.username || 'user'}</span>
+            </button>
+          {:else}
+            <span class="author-name">{post.author?.displayName || 'Anonymous'}</span>
+            <span class="author-handle">@{post.author?.username || 'user'}</span>
+          {/if}
         </div>
 
         <div class="post-meta-actions">
@@ -327,6 +359,25 @@
 
   .post-avatar-col {
     flex-shrink: 0;
+  }
+
+  .author-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    padding: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  .author-btn:hover {
+    opacity: 0.8;
+  }
+
+  .author-name-btn {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
   }
 
   .avatar {

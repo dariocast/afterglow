@@ -5,6 +5,8 @@ import Composer from '../src/components/Composer.svelte';
 import FeedFilters from '../src/components/FeedFilters.svelte';
 import Topbar from '../src/components/Topbar.svelte';
 import PasskeyAuthModal from '../src/components/PasskeyAuthModal.svelte';
+import ProfileDrawer from '../src/components/ProfileDrawer.svelte';
+import type { UserProfile } from '../src/lib/api';
 
 describe('UI & Svelte 5 Components', () => {
   const samplePost = {
@@ -116,6 +118,29 @@ describe('UI & Svelte 5 Components', () => {
       expect(guestHtml).not.toContain('Delete this moment');
       expect(guestHtml).not.toContain('delete-btn');
     });
+
+    it('renders author avatar and username as clickable triggers and applies custom avatarColor', () => {
+      const customAuthorPost = {
+        ...samplePost,
+        author: {
+          ...samplePost.author,
+          avatarColor: '#8a4b38',
+        },
+      };
+
+      const { html } = render(PostCard, {
+        props: {
+          post: customAuthorPost,
+          onAuthorClick: () => {},
+        },
+      });
+
+      // Contains avatar background color
+      expect(html).toContain('background-color: #8a4b38');
+      // Contains clickable author trigger
+      expect(html).toContain('author-btn');
+      expect(html).toContain('@clara');
+    });
   });
 
   describe('Composer.svelte', () => {
@@ -134,7 +159,7 @@ describe('UI & Svelte 5 Components', () => {
   });
 
   describe('FeedFilters.svelte', () => {
-    it('renders filter buttons for All, Ending soon, and Yours', () => {
+    it('renders filter buttons for All, Following, Ending soon, and Yours', () => {
       const { html } = render(FeedFilters, {
         props: {
           activeFilter: 'all',
@@ -143,6 +168,7 @@ describe('UI & Svelte 5 Components', () => {
       });
 
       expect(html).toContain('All');
+      expect(html).toContain('Following');
       expect(html).toContain('Ending soon');
       expect(html).toContain('Yours');
     });
@@ -162,6 +188,110 @@ describe('UI & Svelte 5 Components', () => {
 
       expect(html).toContain('afterglow');
       expect(html).toContain('brand-mark');
+    });
+
+    it('renders clickable profile button with avatarColor and username for logged in user', () => {
+      const { html } = render(Topbar, {
+        props: {
+          theme: 'light',
+          currentUser: {
+            id: 'u-current',
+            username: 'dario',
+            displayName: 'Dario C',
+            avatarColor: '#2b5876',
+          },
+          onToggleTheme: () => {},
+          onProfileClick: () => {},
+        },
+      });
+
+      expect(html).toContain('@dario');
+      expect(html).toContain('background-color: #2b5876');
+      expect(html).toContain('profile-trigger');
+    });
+  });
+
+  describe('ProfileDrawer.svelte', () => {
+    const mockProfile: UserProfile = {
+      id: 'usr_elena',
+      username: 'elena_v',
+      displayName: 'Elena Voronova',
+      bio: 'Typography enthusiast and ink collector.',
+      avatarColor: '#7b3e2b',
+      createdAt: '2026-03-15T10:00:00.000Z',
+      isFollowing: false,
+      activeMoments: [
+        {
+          id: 'post-elena-1',
+          authorId: 'usr_elena',
+          content: 'A fleeting note on modern typography.',
+          lifetimeHours: 24,
+          createdAt: new Date(Date.now() - 3600 * 1000).toISOString(),
+          expiresAt: new Date(Date.now() + 23 * 3600 * 1000).toISOString(),
+          author: {
+            id: 'usr_elena',
+            username: 'elena_v',
+            displayName: 'Elena Voronova',
+            avatarColor: '#7b3e2b',
+          },
+          reactions: { glow: 3, warm: 1, thought: 0 },
+          userReaction: null,
+          replies: [],
+        },
+      ],
+    };
+
+    it('renders author display name, username, bio, join date, and follow button for another user', () => {
+      const { html } = render(ProfileDrawer, {
+        props: {
+          username: 'elena_v',
+          initialProfile: mockProfile,
+          currentUserId: 'usr_viewer',
+          onClose: () => {},
+        },
+      });
+
+      expect(html).toContain('Elena Voronova');
+      expect(html).toContain('@elena_v');
+      expect(html).toContain('Typography enthusiast and ink collector.');
+      expect(html).toContain('Member since March 2026');
+      expect(html).toContain('background-color: #7b3e2b');
+      expect(html).toContain('Follow');
+      expect(html).toContain('A fleeting note on modern typography.');
+    });
+
+    it('renders empty moments notice when author has no active posts', () => {
+      const emptyProfile: UserProfile = {
+        ...mockProfile,
+        activeMoments: [],
+      };
+
+      const { html } = render(ProfileDrawer, {
+        props: {
+          username: 'elena_v',
+          initialProfile: emptyProfile,
+          currentUserId: 'usr_viewer',
+          onClose: () => {},
+        },
+      });
+
+      expect(html).toContain('No active moments. Thoughts will appear here while they live.');
+    });
+
+    it('renders bio edit controls and hides follow button when viewing own profile', () => {
+      const { html } = render(ProfileDrawer, {
+        props: {
+          username: 'elena_v',
+          initialProfile: mockProfile,
+          currentUserId: 'usr_elena',
+          onClose: () => {},
+        },
+      });
+
+      // Does not show follow button for own profile
+      expect(html).not.toContain('follow-btn');
+      // Shows edit bio capability
+      expect(html).toContain('edit-bio');
     });
   });
 

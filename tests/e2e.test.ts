@@ -258,6 +258,123 @@ describe('End-to-End User Journeys & Production Integration', () => {
     });
   });
 
+  describe('Social Graph & Following Feed Journey', () => {
+    it('allows a user to follow Elena, view her active moments in Following filter, and unfollow', async () => {
+      // 1. Create Elena, Marcus, and Alice
+      const elenaId = 'usr_elena_e2e';
+      const marcusId = 'usr_marcus_e2e';
+      const aliceId = 'usr_alice_graph_e2e';
+
+      await db.insert(users).values([
+        {
+          id: elenaId,
+          username: 'elena',
+          displayName: 'Elena Rostova',
+          bio: 'Writing on fine paper.',
+          avatarColor: '#8a4b38',
+          createdAt: new Date(),
+        },
+        {
+          id: marcusId,
+          username: 'marcus',
+          displayName: 'Marcus Aurel',
+          bio: 'Meditations at midnight.',
+          avatarColor: '#3d5a80',
+          createdAt: new Date(),
+        },
+        {
+          id: aliceId,
+          username: 'alice_follower',
+          displayName: 'Alice Reader',
+          createdAt: new Date(),
+        },
+      ]);
+
+      const aliceCookie = await createSessionCookie(aliceId);
+
+      // 2. Elena and Marcus each publish active moments
+      const elenaPostRes = await app.request('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: await createSessionCookie(elenaId),
+        },
+        body: JSON.stringify({
+          content: "Elena's morning reflection.",
+          lifetimeHours: 24,
+        }),
+      });
+      expect(elenaPostRes.status).toBe(201);
+      const elenaPost = await elenaPostRes.json();
+
+      const marcusPostRes = await app.request('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: await createSessionCookie(marcusId),
+        },
+        body: JSON.stringify({
+          content: "Marcus's midnight thought.",
+          lifetimeHours: 24,
+        }),
+      });
+      expect(marcusPostRes.status).toBe(201);
+      const marcusPost = await marcusPostRes.json();
+
+      // 3. Alice checks following feed before following anyone -> empty
+      const initialFollowingRes = await app.request('/api/posts?filter=following', {
+        headers: { Cookie: aliceCookie },
+      });
+      expect(initialFollowingRes.status).toBe(200);
+      const initialPosts = await initialFollowingRes.json();
+      expect(initialPosts).toHaveLength(0);
+
+      // 4. Alice inspects Elena's profile
+      const elenaProfileRes = await app.request('/api/users/elena', {
+        headers: { Cookie: aliceCookie },
+      });
+      expect(elenaProfileRes.status).toBe(200);
+      const elenaProfile = await elenaProfileRes.json();
+      expect(elenaProfile.username).toBe('elena');
+      expect(elenaProfile.isFollowing).toBe(false);
+      expect(elenaProfile.activeMoments).toHaveLength(1);
+
+      // 5. Alice follows Elena
+      const followRes = await app.request(`/api/users/${elenaId}/follow`, {
+        method: 'POST',
+        headers: { Cookie: aliceCookie },
+      });
+      expect(followRes.status).toBe(200);
+      const followData = await followRes.json();
+      expect(followData.isFollowing).toBe(true);
+
+      // 6. Alice switches to "Following" filter -> Elena's active moment is present, Marcus's is not
+      const updatedFollowingRes = await app.request('/api/posts?filter=following', {
+        headers: { Cookie: aliceCookie },
+      });
+      expect(updatedFollowingRes.status).toBe(200);
+      const followingPosts = await updatedFollowingRes.json();
+      expect(followingPosts).toHaveLength(1);
+      expect(followingPosts[0].id).toBe(elenaPost.id);
+      expect(followingPosts[0].content).toBe("Elena's morning reflection.");
+
+      // 7. Alice unfollows Elena
+      const unfollowRes = await app.request(`/api/users/${elenaId}/follow`, {
+        method: 'DELETE',
+        headers: { Cookie: aliceCookie },
+      });
+      expect(unfollowRes.status).toBe(200);
+      expect((await unfollowRes.json()).isFollowing).toBe(false);
+
+      // 8. Alice's following feed is empty again
+      const finalFollowingRes = await app.request('/api/posts?filter=following', {
+        headers: { Cookie: aliceCookie },
+      });
+      expect(finalFollowingRes.status).toBe(200);
+      expect(await finalFollowingRes.json()).toHaveLength(0);
+    });
+  });
+
   describe('Production Static Asset Serving Integration', () => {
     it('serves SPA HTML index and responds to health check', async () => {
       // Verify health check API

@@ -8,6 +8,7 @@
   import FeedFilters from './components/FeedFilters.svelte';
   import PostCard from './components/PostCard.svelte';
   import PasskeyAuthModal from './components/PasskeyAuthModal.svelte';
+  import ProfileDrawer from './components/ProfileDrawer.svelte';
   import Icon from './components/icons/Icon.svelte';
   import { pwaStore } from './lib/pwa.svelte';
 
@@ -17,6 +18,7 @@
   let posts = $state<Post[]>([]);
   let isLoading = $state(true);
   let fetchError = $state<string | null>(null);
+  let selectedProfileUsername = $state<string | null>(null);
 
   // Auth modal state
   let isAuthModalOpen = $state(false);
@@ -75,13 +77,16 @@
   async function loadFeed(filter: FeedFilter) {
     fetchError = null;
     try {
-      if (filter === 'mine' && !authStore.currentUser) {
+      if ((filter === 'mine' || filter === 'following') && !authStore.currentUser) {
         posts = [];
         return;
       }
       posts = await api.getPosts(filter);
     } catch (err: any) {
-      if (filter === 'mine' && (err.message === 'Unauthorized' || err.message?.includes('401'))) {
+      if (
+        (filter === 'mine' || filter === 'following') &&
+        (err.message === 'Unauthorized' || err.message?.includes('401'))
+      ) {
         posts = [];
         return;
       }
@@ -93,7 +98,7 @@
 
   async function handleFilterChange(filter: FeedFilter) {
     activeFilter = filter;
-    if (filter === 'mine' && !authStore.currentUser) {
+    if ((filter === 'mine' || filter === 'following') && !authStore.currentUser) {
       posts = [];
       openAuthModal('login');
       return;
@@ -146,7 +151,7 @@
   async function handleLogout() {
     try {
       await authStore.logout();
-      if (activeFilter === 'mine') {
+      if (activeFilter === 'mine' || activeFilter === 'following') {
         await handleFilterChange('all');
       } else {
         await loadFeed(activeFilter);
@@ -181,6 +186,7 @@
     onToggleTheme={toggleTheme}
     onAuthClick={() => openAuthModal('register')}
     onLogout={handleLogout}
+    onProfileClick={(username) => (selectedProfileUsername = username)}
   />
 
   {#if !pwaStore.isStandalone && !pwaStore.isDismissed && pwaStore.canInstall}
@@ -238,15 +244,29 @@
         </div>
       {:else if posts.length === 0}
         <div id="empty-state" class="empty-state">
-          {#if activeFilter === 'mine' && !authStore.currentUser}
-            <p class="empty-title">Your moments</p>
-            <p class="empty-subtitle">Sign in with a passkey to view and manage your moments.</p>
+          {#if (activeFilter === 'mine' || activeFilter === 'following') && !authStore.currentUser}
+            <p class="empty-title">{activeFilter === 'following' ? 'Following' : 'Your moments'}</p>
+            <p class="empty-subtitle">
+              {activeFilter === 'following'
+                ? 'Sign in with a passkey to view moments from people you follow.'
+                : 'Sign in with a passkey to view and manage your moments.'}
+            </p>
             <button
               class="reset-btn"
               type="button"
               onclick={() => openAuthModal('login')}
             >
               Sign in with Passkey
+            </button>
+          {:else if activeFilter === 'following'}
+            <p class="empty-title">No moments from following</p>
+            <p class="empty-subtitle">Follow people to see their active thoughts here.</p>
+            <button
+              class="reset-btn"
+              type="button"
+              onclick={() => handleFilterChange('all')}
+            >
+              See all active moments
             </button>
           {:else if activeFilter === 'mine'}
             <p class="empty-title">No moments yet</p>
@@ -275,6 +295,7 @@
               onReply={(content) => handleReply(post.id, content)}
               onRequestAuth={() => openAuthModal('register')}
               ondelete={handleDeletePost}
+              onAuthorClick={(username) => (selectedProfileUsername = username)}
             />
           {/each}
         </div>
@@ -295,6 +316,15 @@
     onClose={closeAuthModal}
     onSuccess={handleAuthSuccess}
   />
+
+  {#if selectedProfileUsername}
+    <ProfileDrawer
+      username={selectedProfileUsername}
+      onClose={() => (selectedProfileUsername = null)}
+      onPostUpdated={() => loadFeed(activeFilter)}
+      onRequestAuth={() => openAuthModal('login')}
+    />
+  {/if}
 </div>
 
 <style>
