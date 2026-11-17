@@ -21,52 +21,55 @@
 <div class="feed-filters" role="group" aria-label="Feed filters">
   {#each filters as filter (filter.id)}
     <button
-      class="filter"
+      class="filter-tab"
       class:active={activeFilter === filter.id}
       type="button"
       onclick={() => onFilterChange?.(filter.id)}
       aria-pressed={activeFilter === filter.id}
     >
-      {filter.label}
+      <span class="tab-label">{filter.label}</span>
     </button>
   {/each}
 </div>
 
 <style>
   .feed-filters {
-    display: flex;
-    gap: 16px;
+    display: inline-flex;
     align-items: center;
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    gap: 3px;
   }
 
-  .filter {
-    border: 0;
-    background: none;
+  .filter-tab {
+    border: 1px solid transparent;
+    background: transparent;
     color: var(--muted);
-    padding: 8px 0;
+    padding: 6px 12px;
+    font-family: var(--mono);
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    position: relative;
-    transition: color var(--transition-fast);
+    letter-spacing: 0.08em;
+    border-radius: var(--radius-xs);
+    transition: all var(--transition-fast);
   }
 
-  .filter:hover {
+  .filter-tab:hover {
     color: var(--ink);
   }
 
-  .filter.active {
+  .filter-tab.active {
+    background: var(--surface);
     color: var(--ink);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-xs);
+    font-weight: 600;
   }
 
-  .filter.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--accent);
+  .tab-label {
+    display: inline-block;
   }
 </style>

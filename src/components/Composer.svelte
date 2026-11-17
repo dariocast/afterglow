@@ -66,12 +66,12 @@
   <div class="composer-head">
     <div class="avatar" aria-hidden="true">{userInitials}</div>
     <div class="composer-title-wrap">
-      <h2 id="composer-title">Leave something here</h2>
-      <p>
+      <h2 id="composer-title">Post a moment</h2>
+      <p class="composer-subtitle">
         {#if activeUser}
-          Sharing as <strong>{activeUser.displayName || activeUser.username}</strong>
+          Sharing as <span class="author-tag">@{activeUser.username}</span>
         {:else}
-          Make it worth a short visit.
+          Sign in to post a thought before it dissolves.
         {/if}
       </p>
     </div>
@@ -83,7 +83,7 @@
       id="post-text"
       bind:value={content}
       maxlength="450"
-      placeholder={activeUser ? "A small thought, a question, a passing observation…" : "Sign in with a passkey to share a moment…"}
+      placeholder={activeUser ? "Share a thought, reflection, or passing observation…" : "Sign in with a passkey to post…"}
       disabled={isSubmitting}
       required
     ></textarea>
@@ -99,11 +99,11 @@
 
       <div class="composer-controls">
         <div class="lifetime-selector" role="group" aria-label="Lifespan of this moment">
-          <span class="lifetime-label">Lives for</span>
-          <div class="lifetime-pills">
+          <span class="lifetime-label">Expires in</span>
+          <div class="lifetime-segmented">
             <button
               type="button"
-              class="pill-btn"
+              class="segment-btn"
               class:active={lifetimeHours === 24}
               onclick={() => { lifetimeHours = 24; }}
               disabled={isSubmitting}
@@ -112,7 +112,7 @@
             </button>
             <button
               type="button"
-              class="pill-btn"
+              class="segment-btn"
               class:active={lifetimeHours === 72}
               onclick={() => { lifetimeHours = 72; }}
               disabled={isSubmitting}
@@ -121,7 +121,7 @@
             </button>
             <button
               type="button"
-              class="pill-btn"
+              class="segment-btn"
               class:active={lifetimeHours === 168}
               onclick={() => { lifetimeHours = 168; }}
               disabled={isSubmitting}
@@ -144,10 +144,10 @@
             disabled={isEmpty || isOverLimit || isSubmitting}
           >
             {#if isSubmitting}
-              <span>Sharing…</span>
+              <span>Posting…</span>
             {:else}
-              <span>Share moment</span>
-              <Icon name="arrow-up-right" size={14} />
+              <span>Publish</span>
+              <Icon name="arrow-up-right" size={13} />
             {/if}
           </button>
         {:else}
@@ -156,7 +156,7 @@
             type="button"
             onclick={onRequestAuth}
           >
-            <Icon name="key" size={14} />
+            <Icon name="key" size={13} />
             <span>Sign in to post</span>
           </button>
         {/if}
@@ -170,101 +170,106 @@
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    padding: 24px;
-    margin-bottom: 48px;
+    padding: 20px;
+    margin-bottom: 36px;
     box-shadow: var(--shadow-sm);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
   .composer-card:focus-within {
-    border-color: var(--line-strong);
+    border-color: var(--line-focus);
     box-shadow: var(--shadow-md);
   }
 
   .composer-head {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 18px;
+    gap: 12px;
+    margin-bottom: 14px;
   }
 
   .avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: var(--radius-full);
-    background: var(--surface-2);
-    color: var(--ink);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--amber);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-family: var(--mono);
+    font-size: 12px;
     font-weight: 600;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
   }
 
   .composer-title-wrap h2 {
-    font-size: 16px;
+    font-family: var(--sans);
+    font-size: 14px;
     font-weight: 600;
-    letter-spacing: -0.01em;
-    margin: 0 0 2px;
     color: var(--ink);
+    margin: 0 0 2px;
+    letter-spacing: -0.01em;
   }
 
-  .composer-title-wrap p {
-    font-size: 13px;
+  .composer-subtitle {
+    font-size: 12px;
     color: var(--muted);
     margin: 0;
   }
 
-  .composer-title-wrap strong {
+  .author-tag {
+    font-family: var(--mono);
     color: var(--ink);
     font-weight: 500;
   }
 
   textarea {
     width: 100%;
-    min-height: 100px;
-    padding: 14px;
-    background: var(--bg);
+    min-height: 90px;
+    resize: vertical;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
     color: var(--ink);
-    font-size: 15px;
-    line-height: 1.6;
-    resize: vertical;
-    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 12px;
+    outline: none;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
   }
 
   textarea:focus {
-    outline: none;
-    border-color: var(--accent);
+    border-color: var(--amber);
     background: var(--surface);
   }
 
   textarea::placeholder {
-    color: var(--muted);
+    color: var(--muted-light);
   }
 
   .error-banner {
-    margin-top: 10px;
-    padding: 8px 12px;
     background: var(--danger-soft);
     color: var(--danger);
-    font-size: 13px;
+    border: 1px solid var(--danger);
     border-radius: var(--radius-xs);
+    padding: 8px 12px;
+    font-size: 12px;
+    margin-top: 10px;
   }
 
   .composer-footer {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 14px;
-    gap: 16px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    padding-top: 14px;
+    margin-top: 4px;
   }
 
   .char-count {
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
@@ -278,7 +283,6 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    flex-wrap: wrap;
   }
 
   .lifetime-selector {
@@ -288,68 +292,93 @@
   }
 
   .lifetime-label {
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
     color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
 
-  .lifetime-pills {
+  .lifetime-segmented {
     display: inline-flex;
-    background: var(--surface-2);
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
     padding: 2px;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--line-subtle);
+    gap: 2px;
   }
 
-  .pill-btn {
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
+  .segment-btn {
+    border: 1px solid transparent;
+    background: transparent;
     color: var(--muted);
-    border-radius: var(--radius-full);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: var(--radius-xs);
     transition: all var(--transition-fast);
   }
 
-  .pill-btn:hover {
+  .segment-btn:hover {
     color: var(--ink);
   }
 
-  .pill-btn.active {
+  .segment-btn.active {
     background: var(--surface);
-    color: var(--ink);
-    box-shadow: var(--shadow-xs);
+    color: var(--amber);
+    border-color: var(--line-strong);
     font-weight: 600;
+    box-shadow: var(--shadow-xs);
   }
 
   .submit-btn {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 8px 18px;
-    background: var(--ink);
-    color: var(--bg);
-    border-radius: var(--radius-full);
-    font-size: 13px;
-    font-weight: 500;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--amber);
+    color: #0a0b0e;
+    border: 1px solid var(--amber);
+    box-shadow: var(--amber-glow);
     transition: all var(--transition-fast);
   }
 
   .submit-btn:hover:not(:disabled) {
-    opacity: 0.88;
+    background: var(--accent-hover);
     transform: translateY(-1px);
   }
 
   .submit-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.45;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
   }
 
   .submit-btn.outline {
-    background: transparent;
+    background: var(--surface-subtle);
     color: var(--ink);
-    border: 1px solid var(--line);
+    border-color: var(--line-strong);
+    box-shadow: none;
   }
 
   .submit-btn.outline:hover {
-    background: var(--surface-2);
+    background: var(--surface-hover);
+  }
+
+  @media (max-width: 600px) {
+    .composer-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .composer-controls {
+      width: 100%;
+      justify-content: space-between;
+    }
   }
 </style>
