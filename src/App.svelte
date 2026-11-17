@@ -1,16 +1,16 @@
 <script lang="ts">
-  import { api, type User, type Post, type FeedFilter, type ReactionKind } from './lib/api';
-  import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+  import { api, type Post, type FeedFilter, type ReactionKind } from './lib/api';
+  import { authStore } from './lib/auth.svelte';
 
   import Topbar from './components/Topbar.svelte';
   import HeroSection from './components/HeroSection.svelte';
   import Composer from './components/Composer.svelte';
   import FeedFilters from './components/FeedFilters.svelte';
   import PostCard from './components/PostCard.svelte';
+  import PasskeyAuthModal from './components/PasskeyAuthModal.svelte';
 
   // State
   let theme = $state<'light' | 'dark'>('light');
-  let currentUser = $state<User | null>(null);
   let activeFilter = $state<FeedFilter>('all');
   let posts = $state<Post[]>([]);
   let isLoading = $state(true);
@@ -19,10 +19,6 @@
   // Auth modal state
   let isAuthModalOpen = $state(false);
   let authMode = $state<'login' | 'register'>('register');
-  let authUsername = $state('');
-  let authDisplayName = $state('');
-  let authError = $state<string | null>(null);
-  let isAuthSubmitting = $state(false);
 
   // Initialize theme and load initial data
   $effect(() => {
@@ -48,7 +44,7 @@
   async function initApp() {
     isLoading = true;
     try {
-      currentUser = await api.getCurrentUser();
+      await authStore.checkSession();
     } catch {
       // not logged in
     }
@@ -74,8 +70,7 @@
   }
 
   async function handlePostSubmit(content: string, lifetimeHours: number) {
-    const newPost = await api.createPost(content, lifetimeHours);
-    // Refresh feed
+    await api.createPost(content, lifetimeHours);
     await loadFeed(activeFilter);
   }
 
@@ -108,8 +103,7 @@
 
   async function handleLogout() {
     try {
-      await api.logout();
-      currentUser = null;
+      await authStore.logout();
       if (activeFilter === 'mine') {
         await handleFilterChange('all');
       } else {
@@ -120,43 +114,20 @@
     }
   }
 
-  function openAuthModal() {
-    authError = null;
+  function openAuthModal(mode: 'login' | 'register' = 'register') {
+    authMode = mode;
     isAuthModalOpen = true;
   }
 
   function closeAuthModal() {
     isAuthModalOpen = false;
-    authError = null;
   }
 
-  async function handleAuthSubmit(event: SubmitEvent) {
-    event.preventDefault();
-    authError = null;
-    isAuthSubmitting = true;
-
-    try {
-      if (authMode === 'register') {
-        const username = authUsername.trim();
-        if (!username) throw new Error('Username is required');
-
-        const options = await api.getRegisterOptions(username, authDisplayName.trim() || undefined);
-        const registration = await startRegistration({ optionsJSON: options });
-        const res = await api.verifyRegistration(registration);
-        currentUser = res.user;
-      } else {
-        const options = await api.getAuthOptions(authUsername.trim() || undefined);
-        const authentication = await startAuthentication({ optionsJSON: options });
-        const res = await api.verifyAuth(authentication);
-        currentUser = res.user;
-      }
-
-      closeAuthModal();
+  async function handleAuthSuccess() {
+    if (activeFilter === 'mine') {
+      await loadFeed('mine');
+    } else {
       await loadFeed(activeFilter);
-    } catch (err: any) {
-      authError = err.message || 'Passkey authentication failed';
-    } finally {
-      isAuthSubmitting = false;
     }
   }
 </script>
@@ -164,9 +135,9 @@
 <div class="app-container">
   <Topbar
     {theme}
-    {currentUser}
+    currentUser={authStore.currentUser}
     onToggleTheme={toggleTheme}
-    onAuthClick={openAuthModal}
+    onAuthClick={() => openAuthModal('register')}
     onLogout={handleLogout}
   />
 
@@ -174,9 +145,9 @@
     <HeroSection />
 
     <Composer
-      {currentUser}
+      currentUser={authStore.currentUser}
       onSubmitPost={handlePostSubmit}
-      onRequestAuth={openAuthModal}
+      onRequestAuth={() => openAuthModal('register')}
     />
 
     <section class="feed-section" aria-labelledby="feed-title">
@@ -233,10 +204,10 @@
           {#each posts as post (post.id)}
             <PostCard
               {post}
-              currentUserId={currentUser?.id}
+              currentUserId={authStore.currentUser?.id}
               onReact={(kind) => handleReact(post.id, kind)}
               onReply={(replyContent) => handleReply(post.id, replyContent)}
-              onRequestAuth={openAuthModal}
+              onRequestAuth={() => openAuthModal('register')}
             />
           {/each}
         </div>
@@ -249,108 +220,12 @@
     <span>your moments are yours</span>
   </footer>
 
-  <!-- Passkey Auth Modal -->
-  {#if isAuthModalOpen}
-    <div
-      class="modal-backdrop"
-      role="presentation"
-      onclick={(e) => { if (e.target === e.currentTarget) closeAuthModal(); }}
-    >
-      <div
-        class="modal-card"
-        role="dialog"
-        aria-labelledby="auth-modal-title"
-        aria-modal="true"
-      >
-        <button
-          class="modal-close"
-          type="button"
-          onclick={closeAuthModal}
-          aria-label="Close dialog"
-        >
-          ✕
-        </button>
-
-        <div class="modal-header">
-          <span class="modal-icon" aria-hidden="true">🔑</span>
-          <h2 id="auth-modal-title">
-            {authMode === 'register' ? 'Join with Passkey' : 'Welcome back'}
-          </h2>
-          <p class="modal-subtitle">
-            Fast, passwordless, biometric sign-in directly on your device.
-          </p>
-        </div>
-
-        <div class="auth-tabs" role="tablist">
-          <button
-            class="tab-btn"
-            class:active={authMode === 'register'}
-            type="button"
-            role="tab"
-            aria-selected={authMode === 'register'}
-            onclick={() => { authMode = 'register'; authError = null; }}
-          >
-            Create Passkey
-          </button>
-          <button
-            class="tab-btn"
-            class:active={authMode === 'login'}
-            type="button"
-            role="tab"
-            aria-selected={authMode === 'login'}
-            onclick={() => { authMode = 'login'; authError = null; }}
-          >
-            Sign In
-          </button>
-        </div>
-
-        <form onsubmit={handleAuthSubmit} class="auth-form">
-          <div class="field">
-            <label for="auth-username">Username</label>
-            <input
-              id="auth-username"
-              type="text"
-              bind:value={authUsername}
-              placeholder="e.g. clara"
-              required
-              disabled={isAuthSubmitting}
-            />
-          </div>
-
-          {#if authMode === 'register'}
-            <div class="field">
-              <label for="auth-display-name">Display Name (optional)</label>
-              <input
-                id="auth-display-name"
-                type="text"
-                bind:value={authDisplayName}
-                placeholder="e.g. Clara Oswald"
-                disabled={isAuthSubmitting}
-              />
-            </div>
-          {/if}
-
-          {#if authError}
-            <div class="error-banner" role="alert">{authError}</div>
-          {/if}
-
-          <button
-            class="button button-dark full-width"
-            type="submit"
-            disabled={isAuthSubmitting}
-          >
-            {#if isAuthSubmitting}
-              Waiting for passkey…
-            {:else if authMode === 'register'}
-              Create Passkey & Enter <span>↗</span>
-            {:else}
-              Verify Passkey <span>↗</span>
-            {/if}
-          </button>
-        </form>
-      </div>
-    </div>
-  {/if}
+  <PasskeyAuthModal
+    isOpen={isAuthModalOpen}
+    initialMode={authMode}
+    onClose={closeAuthModal}
+    onSuccess={handleAuthSuccess}
+  />
 </div>
 
 <style>
@@ -457,11 +332,6 @@
     color: var(--ink);
   }
 
-  .button-dark {
-    background: var(--ink);
-    color: var(--bg);
-  }
-
   .footer {
     width: min(100% - 44px, var(--shell-max));
     margin: auto auto 0;
@@ -473,159 +343,6 @@
     font-size: 11px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-  }
-
-  /* Auth Modal */
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(4px);
-    display: grid;
-    place-items: center;
-    z-index: 100;
-    padding: 20px;
-  }
-
-  .modal-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    padding: 32px;
-    border-radius: var(--radius-md);
-    width: min(100%, 420px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-    position: relative;
-    animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.96) translateY(8px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-
-  .modal-close {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    background: none;
-    border: 0;
-    color: var(--muted);
-    font-size: 16px;
-    padding: 6px;
-    border-radius: var(--radius-sm);
-    transition: color var(--transition-fast);
-  }
-
-  .modal-close:hover {
-    color: var(--ink);
-  }
-
-  .modal-header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-
-  .modal-icon {
-    font-size: 32px;
-    display: block;
-    margin-bottom: 8px;
-  }
-
-  .modal-header h2 {
-    font-family: var(--serif);
-    font-size: 26px;
-    font-weight: 400;
-    margin: 0 0 6px;
-    color: var(--ink);
-  }
-
-  .modal-subtitle {
-    font-size: 13px;
-    color: var(--muted);
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  .auth-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 20px;
-  }
-
-  .tab-btn {
-    flex: 1;
-    border: 0;
-    background: none;
-    padding: 10px 0;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted);
-    position: relative;
-    transition: color var(--transition-fast);
-  }
-
-  .tab-btn.active {
-    color: var(--ink);
-  }
-
-  .tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--accent);
-  }
-
-  .auth-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .field label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .field input {
-    border: 1px solid var(--line);
-    background: var(--bg);
-    color: var(--ink);
-    padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    outline: none;
-    transition: border-color var(--transition-fast);
-  }
-
-  .field input:focus {
-    border-color: var(--accent);
-  }
-
-  .error-banner {
-    padding: 10px 14px;
-    background-color: rgba(179, 57, 57, 0.1);
-    border-left: 3px solid var(--danger);
-    color: var(--danger);
-    font-size: 12px;
-    border-radius: var(--radius-sm);
-  }
-
-  .full-width {
-    width: 100%;
-    justify-content: center;
-    padding: 13px;
   }
 
   @media (max-width: 768px) {

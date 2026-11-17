@@ -4,6 +4,7 @@ import PostCard from '../src/components/PostCard.svelte';
 import Composer from '../src/components/Composer.svelte';
 import FeedFilters from '../src/components/FeedFilters.svelte';
 import Topbar from '../src/components/Topbar.svelte';
+import PasskeyAuthModal from '../src/components/PasskeyAuthModal.svelte';
 
 describe('UI & Svelte 5 Components', () => {
   const samplePost = {
@@ -129,6 +130,48 @@ describe('UI & Svelte 5 Components', () => {
 
       expect(html).toContain('afterglow');
       expect(html).toContain('✦');
+    });
+  });
+
+  describe('PasskeyAuthModal.svelte', () => {
+    it('renders registration mode with username and display name fields', () => {
+      const { html } = render(PasskeyAuthModal, {
+        props: {
+          isOpen: true,
+          initialMode: 'register',
+        },
+      });
+
+      expect(html).toContain('Join with Passkey');
+      expect(html).toContain('Register with Passkey');
+      expect(html).toContain('Username');
+      expect(html).toContain('Display Name (optional)');
+      expect(html).toContain('Register with Passkey &amp; Enter');
+    });
+
+    it('renders login mode with username field', () => {
+      const { html } = render(PasskeyAuthModal, {
+        props: {
+          isOpen: true,
+          initialMode: 'login',
+        },
+      });
+
+      expect(html).toContain('Welcome back');
+      expect(html).toContain('Log in with Passkey');
+      expect(html).toContain('Username');
+      expect(html).toContain('Log in with Passkey');
+    });
+
+    it('does not render markup when isOpen is false', () => {
+      const { html } = render(PasskeyAuthModal, {
+        props: {
+          isOpen: false,
+        },
+      });
+
+      expect(html).not.toContain('modal-backdrop');
+      expect(html).not.toContain('auth-modal-title');
     });
   });
 });

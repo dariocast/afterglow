@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { authStore } from '../lib/auth.svelte';
   import type { User } from '../lib/api';
 
   interface Props {
@@ -8,10 +9,12 @@
   }
 
   let {
-    currentUser = null,
+    currentUser = undefined,
     onSubmitPost,
     onRequestAuth,
   }: Props = $props();
+
+  let activeUser = $derived(currentUser !== undefined ? currentUser : authStore.currentUser);
 
   let content = $state('');
   let lifetimeHours = $state(168);
@@ -24,8 +27,8 @@
   let isEmpty = $derived(content.trim().length === 0);
 
   let userInitials = $derived.by(() => {
-    if (!currentUser) return '?';
-    const name = currentUser.displayName || currentUser.username || '';
+    if (!activeUser) return '?';
+    const name = activeUser.displayName || activeUser.username || '';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -35,7 +38,7 @@
 
   async function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
-    if (!currentUser) {
+    if (!activeUser) {
       onRequestAuth?.();
       return;
     }
@@ -64,8 +67,8 @@
     <div class="composer-title-wrap">
       <h2 id="composer-title">Leave something here</h2>
       <p>
-        {#if currentUser}
-          Sharing as <strong>{currentUser.displayName || currentUser.username}</strong>
+        {#if activeUser}
+          Sharing as <strong>{activeUser.displayName || activeUser.username}</strong>
         {:else}
           Make it worth a short visit.
         {/if}
@@ -79,7 +82,7 @@
       id="post-text"
       bind:value={content}
       maxlength="450"
-      placeholder={currentUser ? "A small thought, a question, a passing observation…" : "Sign in with a passkey to share a moment…"}
+      placeholder={activeUser ? "A small thought, a question, a passing observation…" : "Sign in with a passkey to share a moment…"}
       disabled={isSubmitting}
       required
     ></textarea>
@@ -103,7 +106,7 @@
           </select>
         </label>
 
-        {#if currentUser}
+        {#if activeUser}
           <button
             class="button button-dark"
             type="submit"

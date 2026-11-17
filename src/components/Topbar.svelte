@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { authStore } from '../lib/auth.svelte';
   import type { User } from '../lib/api';
 
   interface Props {
@@ -11,21 +12,31 @@
 
   let {
     theme = 'light',
-    currentUser = null,
+    currentUser = undefined,
     onToggleTheme,
     onAuthClick,
     onLogout,
   }: Props = $props();
 
+  let activeUser = $derived(currentUser !== undefined ? currentUser : authStore.currentUser);
+
   let userInitials = $derived.by(() => {
-    if (!currentUser) return '';
-    const name = currentUser.displayName || currentUser.username || '';
+    if (!activeUser) return '';
+    const name = activeUser.displayName || activeUser.username || '';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return name.slice(0, 2).toUpperCase();
   });
+
+  async function handleLogout() {
+    if (onLogout) {
+      onLogout();
+    } else {
+      await authStore.logout();
+    }
+  }
 </script>
 
 <header class="topbar">
@@ -46,16 +57,16 @@
         <span aria-hidden="true">{theme === 'light' ? '☾' : '☼'}</span>
       </button>
 
-      {#if currentUser}
+      {#if activeUser}
         <div class="user-menu">
-          <span class="avatar avatar-small" title={currentUser.displayName || currentUser.username}>
+          <span class="avatar avatar-small" title={activeUser.displayName || activeUser.username}>
             {userInitials}
           </span>
-          <span class="user-name">{currentUser.displayName || currentUser.username}</span>
+          <span class="user-name">{activeUser.displayName || activeUser.username}</span>
           <button
             class="logout-button"
             type="button"
-            onclick={onLogout}
+            onclick={handleLogout}
             aria-label="Sign out"
           >
             Sign out
@@ -171,6 +182,7 @@
     padding: 6px 10px;
     border-radius: var(--radius-sm);
     transition: all var(--transition-fast);
+    cursor: pointer;
   }
 
   .logout-button:hover {
@@ -188,6 +200,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     border-radius: var(--radius-sm);
+    cursor: pointer;
     transition: transform var(--transition-fast), opacity var(--transition-fast);
   }
 
