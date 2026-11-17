@@ -8,6 +8,8 @@
     onReact?: (kind: ReactionKind) => void;
     onReply?: (content: string) => Promise<void>;
     onRequestAuth?: () => void;
+    ondelete?: (id: string) => void;
+    onDelete?: (id: string) => void;
   }
 
   let {
@@ -17,7 +19,22 @@
     onReact,
     onReply,
     onRequestAuth,
+    ondelete,
+    onDelete,
   }: Props = $props();
+
+  const isAuthor = $derived(Boolean(currentUserId && currentUserId === post.authorId));
+
+  function handleDelete() {
+    if (!isAuthor) return;
+    const confirmed =
+      typeof window === 'undefined' || !window.confirm
+        ? true
+        : window.confirm('Let this moment fade away early? This cannot be undone.');
+    if (confirmed) {
+      (ondelete || onDelete)?.(post.id);
+    }
+  }
 
   let now = $state(Date.now());
   // svelte-ignore state_referenced_locally
@@ -118,6 +135,18 @@
       <div class="post-author">{post.author?.displayName || 'Anonymous'}</div>
       <div class="post-handle">@{post.author?.username || 'user'}</div>
     </div>
+    {#if isAuthor}
+      <button
+        class="delete-btn"
+        type="button"
+        onclick={handleDelete}
+        aria-label="Delete this moment"
+        title="Delete this moment"
+      >
+        <span class="delete-icon" aria-hidden="true">✕</span>
+        <span class="delete-label">Delete</span>
+      </button>
+    {/if}
     <div class="expiry-badge" class:urgent={isEndingSoon} title={new Date(post.expiresAt).toLocaleString()}>
       <span class="expiry-dot" aria-hidden="true"></span>
       {expiryLabel}
@@ -295,6 +324,37 @@
   .post-handle {
     color: var(--muted);
     font-size: 12px;
+  }
+
+  .delete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .delete-btn:hover {
+    color: #e5484d;
+    border-color: rgba(229, 72, 77, 0.25);
+    background: rgba(229, 72, 77, 0.06);
+  }
+
+  .delete-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .delete-icon {
+    font-size: 10px;
+    line-height: 1;
   }
 
   .expiry-badge {

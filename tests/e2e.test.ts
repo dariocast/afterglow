@@ -4,7 +4,6 @@ import { db, users, posts, reactions, replies } from '../server/db';
 import { createSessionCookie } from '../server/auth/session';
 import { seedDatabase } from '../server/db/seed';
 import { purgeExpiredPosts } from '../server/services/reaper';
-import { serveStatic } from '@hono/node-server/serve-static';
 import fs from 'node:fs';
 import path from 'node:path';
 

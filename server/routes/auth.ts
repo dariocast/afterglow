@@ -153,8 +153,8 @@ authRouter.post('/register-verify', async (c) => {
   return c.json({ verified: true, user: userRecord });
 });
 
-// POST /api/auth/login-options
-authRouter.post('/login-options', async (c) => {
+// POST /api/auth/login-options (and alias /api/auth/auth-options)
+const handleLoginOptions = async (c: any) => {
   let body: { username?: string } = {};
   try {
     body = await c.req.json();
@@ -189,10 +189,13 @@ authRouter.post('/login-options', async (c) => {
   });
 
   return c.json(options);
-});
+};
 
-// POST /api/auth/login-verify
-authRouter.post('/login-verify', async (c) => {
+authRouter.post('/login-options', handleLoginOptions);
+authRouter.post('/auth-options', handleLoginOptions);
+
+// POST /api/auth/login-verify (and alias /api/auth/auth-verify)
+const handleLoginVerify = async (c: any) => {
   let body: any = {};
   try {
     body = await c.req.json();
@@ -266,7 +269,10 @@ authRouter.post('/login-verify', async (c) => {
   await setSession(c, user.id);
 
   return c.json({ verified: true, user });
-});
+};
+
+authRouter.post('/login-verify', handleLoginVerify);
+authRouter.post('/auth-verify', handleLoginVerify);
 
 // GET /api/auth/me
 authRouter.get('/me', async (c) => {

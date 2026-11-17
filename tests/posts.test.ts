@@ -279,6 +279,8 @@ describe('Posts API & Expiry Reaper', () => {
       expect(resGlow.status).toBe(200);
       const dataGlow = await resGlow.json();
       expect(dataGlow.reaction?.kind).toBe('glow');
+      expect(dataGlow.reactions).toEqual({ glow: 1, warm: 0, thought: 0 });
+      expect(dataGlow.userReaction).toBe('glow');
 
       // Check feed to confirm reaction count and userReaction
       const resFeed1 = await app.request('/api/posts?filter=all', {
@@ -299,6 +301,8 @@ describe('Posts API & Expiry Reaper', () => {
       expect(resWarm.status).toBe(200);
       const dataWarm = await resWarm.json();
       expect(dataWarm.reaction?.kind).toBe('warm');
+      expect(dataWarm.reactions).toEqual({ glow: 0, warm: 1, thought: 0 });
+      expect(dataWarm.userReaction).toBe('warm');
 
       // Feed check: glow is now 0, warm is 1
       const resFeed2 = await app.request('/api/posts?filter=all', {
@@ -319,6 +323,8 @@ describe('Posts API & Expiry Reaper', () => {
       expect(resToggleOff.status).toBe(200);
       const dataOff = await resToggleOff.json();
       expect(dataOff.reaction).toBeNull();
+      expect(dataOff.reactions).toEqual({ glow: 0, warm: 0, thought: 0 });
+      expect(dataOff.userReaction).toBeNull();
 
       // Feed check: warm is 0, userReaction is null
       const resFeed3 = await app.request('/api/posts?filter=all', {

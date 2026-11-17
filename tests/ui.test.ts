@@ -84,6 +84,38 @@ describe('UI & Svelte 5 Components', () => {
 
       expect(html.toLowerCase()).toContain('ending soon');
     });
+
+    it('renders delete button for the post author and hides it for non-authors', () => {
+      // As author (user-1)
+      const { html: authorHtml } = render(PostCard, {
+        props: {
+          post: samplePost,
+          currentUserId: 'user-1',
+        },
+      });
+      expect(authorHtml).toContain('Delete this moment');
+      expect(authorHtml).toContain('delete-btn');
+
+      // As non-author (user-2)
+      const { html: otherUserHtml } = render(PostCard, {
+        props: {
+          post: samplePost,
+          currentUserId: 'user-2',
+        },
+      });
+      expect(otherUserHtml).not.toContain('Delete this moment');
+      expect(otherUserHtml).not.toContain('delete-btn');
+
+      // As unauthenticated visitor
+      const { html: guestHtml } = render(PostCard, {
+        props: {
+          post: samplePost,
+          currentUserId: null,
+        },
+      });
+      expect(guestHtml).not.toContain('Delete this moment');
+      expect(guestHtml).not.toContain('delete-btn');
+    });
   });
 
   describe('Composer.svelte', () => {

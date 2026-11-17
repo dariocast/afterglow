@@ -257,32 +257,58 @@ postsRouter.post('/:id/reactions', requireAuth, async (c) => {
       .where(and(eq(reactions.postId, postId), eq(reactions.userId, user.id)))
   )[0];
 
+  let reactionResult: { id: string; kind: string } | null = null;
+
   if (existingReaction) {
     if (existingReaction.kind === kind) {
       // Toggle off: remove existing reaction
       await db.delete(reactions).where(eq(reactions.id, existingReaction.id));
-      return c.json({ success: true, reaction: null });
+      reactionResult = null;
     } else {
       // Update reaction to new kind
       await db
         .update(reactions)
         .set({ kind, createdAt: new Date() })
         .where(eq(reactions.id, existingReaction.id));
-      return c.json({ success: true, reaction: { id: existingReaction.id, kind } });
+      reactionResult = { id: existingReaction.id, kind };
+    }
+  } else {
+    // Insert new reaction
+    const reactionId = crypto.randomUUID();
+    await db.insert(reactions).values({
+      id: reactionId,
+      postId,
+      userId: user.id,
+      kind,
+      createdAt: new Date(),
+    });
+    reactionResult = { id: reactionId, kind };
+  }
+
+  // Calculate updated reactions tally and user's current reaction
+  const allReactions = await db
+    .select({ kind: reactions.kind, userId: reactions.userId })
+    .from(reactions)
+    .where(eq(reactions.postId, postId));
+
+  const tally: Record<ReactionKind, number> = { glow: 0, warm: 0, thought: 0 };
+  let currentUserReaction: ReactionKind | null = null;
+
+  for (const r of allReactions) {
+    if (r.kind in tally) {
+      tally[r.kind as ReactionKind]++;
+    }
+    if (r.userId === user.id) {
+      currentUserReaction = r.kind as ReactionKind;
     }
   }
 
-  // Insert new reaction
-  const reactionId = crypto.randomUUID();
-  await db.insert(reactions).values({
-    id: reactionId,
-    postId,
-    userId: user.id,
-    kind,
-    createdAt: new Date(),
+  return c.json({
+    success: true,
+    reaction: reactionResult,
+    reactions: tally,
+    userReaction: currentUserReaction,
   });
-
-  return c.json({ success: true, reaction: { id: reactionId, kind } });
 });
 
 /**

@@ -108,6 +108,17 @@ describe('Auth API', () => {
       expect(options.allowCredentials.length).toBe(1);
       expect(options.allowCredentials[0].id).toBe('user-cred-abc');
     });
+
+    it('supports /api/auth/auth-options route alias', async () => {
+      const res = await app.request('/api/auth/auth-options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      expect(res.status).toBe(200);
+      const options = await res.json();
+      expect(options.challenge).toBeDefined();
+    });
   });
 
   describe('POST /api/auth/register-verify & login-verify validation', () => {
@@ -124,6 +135,17 @@ describe('Auth API', () => {
 
     it('rejects login-verify when challenge is missing or invalid', async () => {
       const res = await app.request('/api/auth/login-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challenge: 'non-existent-challenge' }),
+      });
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toMatch(/Invalid or expired challenge/i);
+    });
+
+    it('supports /api/auth/auth-verify route alias', async () => {
+      const res = await app.request('/api/auth/auth-verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ challenge: 'non-existent-challenge' }),

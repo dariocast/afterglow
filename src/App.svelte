@@ -106,6 +106,15 @@
     });
   }
 
+  async function handleDeletePost(postId: string) {
+    try {
+      await api.deletePost(postId);
+      posts = posts.filter((p) => p.id !== postId);
+    } catch (err: any) {
+      console.error('Failed to delete post:', err);
+    }
+  }
+
   async function handleLogout() {
     try {
       await authStore.logout();
@@ -242,6 +251,7 @@
               onReact={(kind) => handleReact(post.id, kind)}
               onReply={(replyContent) => handleReply(post.id, replyContent)}
               onRequestAuth={() => openAuthModal('register')}
+              ondelete={handleDeletePost}
             />
           {/each}
         </div>

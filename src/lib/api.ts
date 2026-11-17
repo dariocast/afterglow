@@ -74,10 +74,26 @@ export const api = {
     });
   },
 
-  async reactToPost(postId: string, kind: ReactionKind): Promise<{ reactions: ReactionTally; userReaction: ReactionKind | null }> {
-    return request<{ reactions: ReactionTally; userReaction: ReactionKind | null }>(`/api/posts/${postId}/reactions`, {
+  async reactToPost(postId: string, kind: ReactionKind): Promise<{
+    success: boolean;
+    reaction: { id: string; kind: string } | null;
+    reactions: ReactionTally;
+    userReaction: ReactionKind | null;
+  }> {
+    return request<{
+      success: boolean;
+      reaction: { id: string; kind: string } | null;
+      reactions: ReactionTally;
+      userReaction: ReactionKind | null;
+    }>(`/api/posts/${postId}/reactions`, {
       method: 'POST',
       body: JSON.stringify({ kind }),
+    });
+  },
+
+  async deletePost(id: string): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>(`/api/posts/${id}`, {
+      method: 'DELETE',
     });
   },
 
@@ -119,14 +135,14 @@ export const api = {
   },
 
   async getAuthOptions(username?: string) {
-    return request<any>('/api/auth/auth-options', {
+    return request<any>('/api/auth/login-options', {
       method: 'POST',
       body: JSON.stringify({ username }),
     });
   },
 
   async verifyAuth(response: any) {
-    return request<{ verified: boolean; user: User }>('/api/auth/auth-verify', {
+    return request<{ verified: boolean; user: User }>('/api/auth/login-verify', {
       method: 'POST',
       body: JSON.stringify(response),
     });
