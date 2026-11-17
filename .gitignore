@@ -4,9 +4,14 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+dist/
 node_modules/
 coverage/
 .pytest_cache/
 __pycache__/
 .vscode/
 .idea/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

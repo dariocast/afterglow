@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "Afterglow — finite social space",
+  "short_name": "Afterglow",
+  "description": "A finite, intentional social space for conversations with a natural ending. No permanent archives, zero tracking, instant launch.",
+  "id": "/?source=pwa",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "categories": [
+    "social",
+    "lifestyle"
+  ],
+  "theme_color": "#111110",
+  "background_color": "#fdfcf9",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New moment",
+      "short_name": "Post",
+      "description": "Compose and share a new moment with natural expiry",
+      "url": "/#composer",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/narrow-1.png",
+      "sizes": "1080x2340",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "The Living Room feed displaying calming moments with fading countdown timers"
+    },
+    {
+      "src": "/screenshots/narrow-2.png",
+      "sizes": "1080x2340",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Composing a new moment with custom 24-hour to 7-day lifetime"
+    },
+    {
+      "src": "/screenshots/narrow-3.png",
+      "sizes": "1080x2340",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Fast, passwordless passkey authentication backed by biometrics"
+    },
+    {
+      "src": "/screenshots/wide-1.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Afterglow desktop living room view with clean typography and distraction-free design"
+    }
+  ]
+}
