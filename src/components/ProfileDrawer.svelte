@@ -14,6 +14,7 @@
     initialProfile?: UserProfile | null;
     initialEditingBio?: boolean;
     currentUserId?: string | null;
+    isAuthModalOpen?: boolean;
     onClose: () => void;
     onPostUpdated?: () => void;
     onRequestAuth?: () => void;
@@ -24,6 +25,7 @@
     initialProfile = null,
     initialEditingBio = false,
     currentUserId = undefined,
+    isAuthModalOpen = false,
     onClose,
     onPostUpdated,
     onRequestAuth,
@@ -34,6 +36,8 @@
   // svelte-ignore state_referenced_locally
   let isLoading = $state(!initialProfile);
   let loadError = $state<string | null>(null);
+  let fetchRequestId = 0;
+  let lastAuthUserId = $state<string | null | undefined>(undefined);
 
   // Bio editing state
   // svelte-ignore state_referenced_locally
@@ -76,32 +80,55 @@
   });
 
   async function loadProfile(userToLoad: string) {
+    const requestId = ++fetchRequestId;
     isLoading = true;
     loadError = null;
     try {
       const res = await api.fetchUserProfile(userToLoad);
+      if (requestId !== fetchRequestId) {
+        return;
+      }
       profile = res;
       bioDraft = res.bio || '';
     } catch (err: any) {
+      if (requestId !== fetchRequestId) {
+        return;
+      }
       loadError = err.message || 'Failed to load profile';
     } finally {
-      isLoading = false;
+      if (requestId === fetchRequestId) {
+        isLoading = false;
+      }
     }
   }
 
   $effect(() => {
-    if (username) {
-      // If we don't already have the matching initialProfile loaded
-      if (!profile || profile.username !== username) {
-        loadProfile(username);
+    const targetUser = username;
+    const currentUid = effectiveCurrentUserId;
+
+    if (targetUser) {
+      // Re-fetch if username changes or auth session identity transitions
+      if (
+        !profile ||
+        profile.username !== targetUser ||
+        (lastAuthUserId !== undefined && lastAuthUserId !== currentUid)
+      ) {
+        loadProfile(targetUser);
       } else {
         bioDraft = profile.bio || '';
       }
     }
+    lastAuthUserId = currentUid;
   });
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
+      if (
+        isAuthModalOpen ||
+        (typeof document !== 'undefined' && document.querySelector('.modal-backdrop'))
+      ) {
+        return;
+      }
       onClose();
     }
   }
@@ -264,7 +291,7 @@
         <div class="profile-identity">
           <div
             class="profile-avatar-badge"
-            style={profile.avatarColor ? `background-color: ${profile.avatarColor}` : ''}
+            style={profile.avatarColor ? `background-color: ${profile.avatarColor}; color: #fbf9f5;` : ''}
             aria-hidden="true"
           >
             {initials}
@@ -483,6 +510,17 @@
     padding: 40px 20px;
     color: var(--muted);
     font-size: 13px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--line);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 8px;
   }
 
   .retry-btn {
@@ -760,6 +798,12 @@
     }
     to {
       opacity: 1;
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
     }
   }
 </style>

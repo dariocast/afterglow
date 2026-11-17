@@ -142,8 +142,9 @@ describe('UI & Svelte 5 Components', () => {
         },
       });
 
-      // Contains avatar background color
+      // Contains avatar background color and light ink contrast
       expect(html).toContain('background-color: #8a4b38');
+      expect(html).toContain('color: #fbf9f5');
       // Contains clickable author trigger
       expect(html).toContain('author-btn');
       expect(html).toContain('@clara');
@@ -214,6 +215,7 @@ describe('UI & Svelte 5 Components', () => {
 
       expect(html).toContain('@dario');
       expect(html).toContain('background-color: #2b5876');
+      expect(html).toContain('color: #fbf9f5');
       expect(html).toContain('profile-trigger');
     });
   });
@@ -263,6 +265,7 @@ describe('UI & Svelte 5 Components', () => {
       expect(html).toContain('Typography enthusiast and ink collector.');
       expect(html).toContain('Member since March 2026');
       expect(html).toContain('background-color: #7b3e2b');
+      expect(html).toContain('color: #fbf9f5');
       expect(html).toContain('Follow');
       expect(html).toContain('A fleeting note on modern typography.');
     });
@@ -416,6 +419,27 @@ describe('UI & Svelte 5 Components', () => {
       expect(profileCopy.activeMoments[0].replies[0].content).toBe('Remarkable reflection.');
       expect(onPostUpdated).toHaveBeenCalledTimes(1);
       replySpy.mockRestore();
+    });
+
+    it('renders loading spinner and defines spinner keyframe animation styles', () => {
+      const { html } = render(ProfileDrawer, {
+        props: {
+          username: 'elena_v',
+          initialProfile: null,
+          onClose: () => {},
+        },
+      });
+
+      expect(html).toContain('spinner');
+      expect(html).toContain('Opening profile...');
+
+      const drawerSrc = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/components/ProfileDrawer.svelte'),
+        'utf-8'
+      );
+      expect(drawerSrc).toContain('.spinner {');
+      expect(drawerSrc).toContain('@keyframes spin {');
+      expect(drawerSrc).toContain('isAuthModalOpen');
     });
   });
 

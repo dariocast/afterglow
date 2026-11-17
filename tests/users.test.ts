@@ -113,6 +113,13 @@ describe('Users Profile & Follows API', () => {
       expect(data.activeMoments[0].userReaction).toBeNull();
       expect(data.activeMoments[0].replies).toHaveLength(1);
       expect(data.activeMoments[0].replies[0].content).toBe('Quiet agreement.');
+      expect(data.activeMoments[0].replies[0].author).toEqual({
+        id: user2Id,
+        username: 'alexr',
+        displayName: 'Alex Rivera',
+        bio: 'Waiting for the kettle to boil.',
+        avatarColor: '#5a7d65',
+      });
     });
 
     it('computes isFollowing accurately for authenticated requester and self', async () => {
@@ -237,6 +244,86 @@ describe('Users Profile & Follows API', () => {
         body: JSON.stringify({ displayName: 'x'.repeat(51) }),
       });
       expect(longRes.status).toBe(400);
+    });
+
+    it('rejects invalid avatarColor formats with 400', async () => {
+      const cookie = await createSessionCookie(user1Id);
+
+      const invalidColors = [
+        'red',
+        '#fff',
+        '#1234567',
+        'rgb(0,0,0)',
+        'expression(alert(1))',
+        '#zzzzzz',
+      ];
+
+      for (const color of invalidColors) {
+        const res = await app.request('/api/users/me', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: cookie,
+          },
+          body: JSON.stringify({ avatarColor: color }),
+        });
+        expect(res.status).toBe(400);
+        const data = await res.json();
+        expect(data.error).toBe('Avatar color must be a 6-digit hex color (e.g. #a26a42)');
+      }
+    });
+
+    it('accepts valid 6-digit hex avatarColor and allows clearing with null or empty string', async () => {
+      const cookie = await createSessionCookie(user1Id);
+
+      // Valid 6-digit hex
+      const validRes = await app.request('/api/users/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: cookie,
+        },
+        body: JSON.stringify({ avatarColor: '#3b82f6' }),
+      });
+      expect(validRes.status).toBe(200);
+      const validData = await validRes.json();
+      expect(validData.avatarColor).toBe('#3b82f6');
+
+      // Clear with null
+      const clearRes = await app.request('/api/users/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: cookie,
+        },
+        body: JSON.stringify({ avatarColor: null }),
+      });
+      expect(clearRes.status).toBe(200);
+      const clearData = await clearRes.json();
+      expect(clearData.avatarColor).toBeNull();
+
+      // Set again
+      await app.request('/api/users/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: cookie,
+        },
+        body: JSON.stringify({ avatarColor: '#10b981' }),
+      });
+
+      // Clear with empty string
+      const emptyRes = await app.request('/api/users/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: cookie,
+        },
+        body: JSON.stringify({ avatarColor: '   ' }),
+      });
+      expect(emptyRes.status).toBe(200);
+      const emptyData = await emptyRes.json();
+      expect(emptyData.avatarColor).toBeNull();
     });
   });
 

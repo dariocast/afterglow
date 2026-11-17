@@ -1,11 +1,10 @@
 import { Hono } from 'hono';
-import { eq, and, gt, desc, asc, inArray } from 'drizzle-orm';
-import { db, users, follows, posts, reactions, replies, type User } from '../db';
+import { eq, and, gt, desc } from 'drizzle-orm';
+import { db, users, follows, posts, type User } from '../db';
 import { requireAuth, getSessionUser } from '../auth/session';
+import { hydratePosts, serializeAuthor, type ReactionKind } from './post-helpers';
 
 export const usersRouter = new Hono();
-
-type ReactionKind = 'glow' | 'warm' | 'thought';
 
 interface ProfileUpdateFields {
   bio?: string | null;
@@ -61,10 +60,13 @@ function parseProfileUpdate(
       return { error: 'Avatar color must be a string' };
     } else {
       const trimmedColor = record.avatarColor.trim();
-      if (trimmedColor.length === 0 || trimmedColor.length > 32) {
-        return { error: 'Invalid avatar color' };
+      if (trimmedColor.length === 0) {
+        updates.avatarColor = null;
+      } else if (!/^#[0-9a-fA-F]{6}$/i.test(trimmedColor)) {
+        return { error: 'Avatar color must be a 6-digit hex color (e.g. #a26a42)' };
+      } else {
+        updates.avatarColor = trimmedColor;
       }
-      updates.avatarColor = trimmedColor;
     }
   }
 
@@ -76,93 +78,23 @@ function parseProfileUpdate(
  */
 async function fetchActiveMoments(targetUser: User, currentUserId: string | null) {
   const now = new Date();
-  const activePosts = await db
+  const rawPosts = await db
     .select()
     .from(posts)
     .where(and(eq(posts.authorId, targetUser.id), gt(posts.expiresAt, now)))
     .orderBy(desc(posts.createdAt));
 
-  if (activePosts.length === 0) {
+  if (rawPosts.length === 0) {
     return [];
   }
 
-  const postIds = activePosts.map((p) => p.id);
+  const author = serializeAuthor(targetUser);
+  const postsWithAuthor = rawPosts.map((p) => ({
+    ...p,
+    author,
+  }));
 
-  const postReactions = await db
-    .select()
-    .from(reactions)
-    .where(inArray(reactions.postId, postIds));
-
-  const postReplies = await db
-    .select({
-      id: replies.id,
-      postId: replies.postId,
-      authorId: replies.authorId,
-      content: replies.content,
-      createdAt: replies.createdAt,
-      author: {
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-        avatarColor: users.avatarColor,
-      },
-    })
-    .from(replies)
-    .innerJoin(users, eq(replies.authorId, users.id))
-    .where(inArray(replies.postId, postIds))
-    .orderBy(asc(replies.createdAt));
-
-  const reactionsByPost = new Map<string, typeof postReactions>();
-  for (const r of postReactions) {
-    const list = reactionsByPost.get(r.postId) || [];
-    list.push(r);
-    reactionsByPost.set(r.postId, list);
-  }
-
-  const repliesByPost = new Map<string, typeof postReplies>();
-  for (const rep of postReplies) {
-    const list = repliesByPost.get(rep.postId) || [];
-    list.push(rep);
-    repliesByPost.set(rep.postId, list);
-  }
-
-  const authorSummary = {
-    id: targetUser.id,
-    username: targetUser.username,
-    displayName: targetUser.displayName,
-    bio: targetUser.bio,
-    avatarColor: targetUser.avatarColor,
-  };
-
-  return activePosts.map((p) => {
-    const rxns = reactionsByPost.get(p.id) || [];
-    const reps = repliesByPost.get(p.id) || [];
-
-    const tally: Record<ReactionKind, number> = { glow: 0, warm: 0, thought: 0 };
-    let userReaction: ReactionKind | null = null;
-
-    for (const r of rxns) {
-      if (r.kind in tally) {
-        tally[r.kind as ReactionKind]++;
-      }
-      if (currentUserId && r.userId === currentUserId) {
-        userReaction = r.kind as ReactionKind;
-      }
-    }
-
-    return {
-      id: p.id,
-      authorId: p.authorId,
-      content: p.content,
-      lifetimeHours: p.lifetimeHours,
-      createdAt: p.createdAt,
-      expiresAt: p.expiresAt,
-      author: authorSummary,
-      reactions: tally,
-      userReaction,
-      replies: reps,
-    };
-  });
+  return hydratePosts(postsWithAuthor, currentUserId);
 }
 
 /**

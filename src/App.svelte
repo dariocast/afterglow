@@ -320,6 +320,7 @@
   {#if selectedProfileUsername}
     <ProfileDrawer
       username={selectedProfileUsername}
+      isAuthModalOpen={isAuthModalOpen}
       onClose={() => (selectedProfileUsername = null)}
       onPostUpdated={() => loadFeed(activeFilter)}
       onRequestAuth={() => openAuthModal('login')}

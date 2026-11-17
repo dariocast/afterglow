@@ -80,7 +80,7 @@
           >
             <span
               class="avatar avatar-small"
-              style={activeUser.avatarColor ? `background-color: ${activeUser.avatarColor}` : ''}
+              style={activeUser.avatarColor ? `background-color: ${activeUser.avatarColor}; color: #fbf9f5;` : ''}
               title={activeUser.displayName || activeUser.username}
             >
               {userInitials}

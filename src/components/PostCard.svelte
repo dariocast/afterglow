@@ -141,14 +141,14 @@
           type="button"
           onclick={() => onAuthorClick?.(post.author.username)}
           aria-label="View @{post.author.username}'s profile"
-          style={post.author?.avatarColor ? `background-color: ${post.author.avatarColor}` : ''}
+          style={post.author?.avatarColor ? `background-color: ${post.author.avatarColor}; color: #fbf9f5;` : ''}
         >
           {initials}
         </button>
       {:else}
         <div
           class="avatar"
-          style={post.author?.avatarColor ? `background-color: ${post.author.avatarColor}` : ''}
+          style={post.author?.avatarColor ? `background-color: ${post.author.avatarColor}; color: #fbf9f5;` : ''}
           aria-hidden="true"
         >
           {initials}

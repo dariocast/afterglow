@@ -1,31 +1,18 @@
 import { Hono } from 'hono';
 import { eq, and, gt, lte, desc, asc, inArray } from 'drizzle-orm';
-import { db, posts, reactions, replies, users, follows, type User } from '../db';
+import { db, posts, reactions, replies, users, follows } from '../db';
 import { requireAuth, getSessionUser } from '../auth/session';
+import {
+  authorSelect,
+  serializeAuthor,
+  hydratePosts,
+  VALID_REACTION_KINDS,
+  type ReactionKind,
+} from './post-helpers';
 
 export const postsRouter = new Hono();
 
 const VALID_LIFETIMES = [24, 72, 168];
-const VALID_REACTION_KINDS = ['glow', 'warm', 'thought'] as const;
-type ReactionKind = (typeof VALID_REACTION_KINDS)[number];
-
-const authorSelect = {
-  id: users.id,
-  username: users.username,
-  displayName: users.displayName,
-  bio: users.bio,
-  avatarColor: users.avatarColor,
-};
-
-function serializeAuthor(user: User) {
-  return {
-    id: user.id,
-    username: user.username,
-    displayName: user.displayName,
-    bio: user.bio,
-    avatarColor: user.avatarColor,
-  };
-}
 
 /**
  * GET /api/posts?filter=[all|ending|mine|following]
@@ -83,79 +70,7 @@ postsRouter.get('/', async (c) => {
     .where(whereClause)
     .orderBy(orderByClause);
 
-  if (activePosts.length === 0) {
-    return c.json([]);
-  }
-
-  const postIds = activePosts.map((p) => p.id);
-
-  // 2. Fetch all reactions for these posts
-  const postReactions = await db
-    .select()
-    .from(reactions)
-    .where(inArray(reactions.postId, postIds));
-
-  // 3. Fetch all replies with author info for these posts
-  const postReplies = await db
-    .select({
-      id: replies.id,
-      postId: replies.postId,
-      authorId: replies.authorId,
-      content: replies.content,
-      createdAt: replies.createdAt,
-      author: authorSelect,
-    })
-    .from(replies)
-    .innerJoin(users, eq(replies.authorId, users.id))
-    .where(inArray(replies.postId, postIds))
-    .orderBy(asc(replies.createdAt));
-
-  // Group reactions and replies by postId
-  const reactionsByPost = new Map<string, typeof postReactions>();
-  for (const r of postReactions) {
-    const list = reactionsByPost.get(r.postId) || [];
-    list.push(r);
-    reactionsByPost.set(r.postId, list);
-  }
-
-  const repliesByPost = new Map<string, typeof postReplies>();
-  for (const rep of postReplies) {
-    const list = repliesByPost.get(rep.postId) || [];
-    list.push(rep);
-    repliesByPost.set(rep.postId, list);
-  }
-
-  // Assemble full feed payload
-  const feed = activePosts.map((p) => {
-    const rxns = reactionsByPost.get(p.id) || [];
-    const reps = repliesByPost.get(p.id) || [];
-
-    const tally = { glow: 0, warm: 0, thought: 0 };
-    let userReaction: string | null = null;
-
-    for (const r of rxns) {
-      if (r.kind in tally) {
-        tally[r.kind as keyof typeof tally]++;
-      }
-      if (currentUser && r.userId === currentUser.id) {
-        userReaction = r.kind;
-      }
-    }
-
-    return {
-      id: p.id,
-      authorId: p.authorId,
-      content: p.content,
-      lifetimeHours: p.lifetimeHours,
-      createdAt: p.createdAt,
-      expiresAt: p.expiresAt,
-      author: p.author,
-      reactions: tally,
-      userReaction,
-      replies: reps,
-    };
-  });
-
+  const feed = await hydratePosts(activePosts, currentUser?.id ?? null);
   return c.json(feed);
 });
 
