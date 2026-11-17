@@ -8,6 +8,8 @@
   import FeedFilters from './components/FeedFilters.svelte';
   import PostCard from './components/PostCard.svelte';
   import PasskeyAuthModal from './components/PasskeyAuthModal.svelte';
+  import PwaInstallModal from './components/PwaInstallModal.svelte';
+  import { pwaStore } from './lib/pwa.svelte';
 
   // State
   let theme = $state<'light' | 'dark'>('light');
@@ -29,6 +31,9 @@
 
     // Initial auth & feed load
     initApp();
+
+    // Initialize PWA installation listeners
+    pwaStore.init();
   });
 
   function applyTheme(t: 'light' | 'dark') {
@@ -139,7 +144,36 @@
     onToggleTheme={toggleTheme}
     onAuthClick={() => openAuthModal('register')}
     onLogout={handleLogout}
+    onInstallClick={() => pwaStore.openInstallModal()}
   />
+
+  {#if !pwaStore.isStandalone && !pwaStore.isDismissed && pwaStore.canInstall}
+    <div class="pwa-banner" role="region" aria-label="Installazione Progressive Web App">
+      <div class="shell pwa-banner-inner">
+        <div class="pwa-banner-text">
+          <span class="pwa-banner-icon" aria-hidden="true">📲</span>
+          <span>Installa Afterglow sulla schermata Home per avvio istantaneo e privacy totale.</span>
+        </div>
+        <div class="pwa-banner-actions">
+          <button
+            class="pwa-banner-btn primary"
+            type="button"
+            onclick={() => pwaStore.openInstallModal()}
+          >
+            Installa app
+          </button>
+          <button
+            class="pwa-banner-btn dismiss"
+            type="button"
+            onclick={() => pwaStore.dismissBanner()}
+            aria-label="Ignora promemoria installazione"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <main id="top" class="shell">
     <HeroSection />
@@ -225,6 +259,11 @@
     initialMode={authMode}
     onClose={closeAuthModal}
     onSuccess={handleAuthSuccess}
+  />
+
+  <PwaInstallModal
+    isOpen={pwaStore.isModalOpen}
+    onClose={() => pwaStore.closeInstallModal()}
   />
 </div>
 
@@ -345,7 +384,86 @@
     text-transform: uppercase;
   }
 
+  /* PWA discreet banner */
+  .pwa-banner {
+    background: var(--surface-1);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 0;
+    transition: background-color var(--transition-smooth);
+  }
+
+  .pwa-banner-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .pwa-banner-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .pwa-banner-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .pwa-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .pwa-banner-btn.primary {
+    background: var(--ink);
+    color: var(--bg);
+    border: 0;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity var(--transition-fast);
+  }
+
+  .pwa-banner-btn.primary:hover {
+    opacity: 0.9;
+  }
+
+  .pwa-banner-btn.dismiss {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+    transition: color var(--transition-fast);
+  }
+
+  .pwa-banner-btn.dismiss:hover {
+    color: var(--ink);
+  }
+
   @media (max-width: 768px) {
+    .pwa-banner-inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .pwa-banner-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
     .feed {
       grid-template-columns: 1fr;
     }

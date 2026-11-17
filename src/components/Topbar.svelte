@@ -1,5 +1,6 @@
 <script lang="ts">
   import { authStore } from '../lib/auth.svelte';
+  import { pwaStore } from '../lib/pwa.svelte';
   import type { User } from '../lib/api';
 
   interface Props {
@@ -8,6 +9,7 @@
     onToggleTheme?: () => void;
     onAuthClick?: () => void;
     onLogout?: () => void;
+    onInstallClick?: () => void;
   }
 
   let {
@@ -16,6 +18,7 @@
     onToggleTheme,
     onAuthClick,
     onLogout,
+    onInstallClick,
   }: Props = $props();
 
   let activeUser = $derived(currentUser !== undefined ? currentUser : authStore.currentUser);
@@ -46,6 +49,18 @@
     </a>
 
     <nav class="top-actions" aria-label="App controls">
+      {#if !pwaStore.isStandalone}
+        <button
+          class="icon-button pwa-install-trigger"
+          type="button"
+          onclick={() => { if (onInstallClick) onInstallClick(); else pwaStore.openInstallModal(); }}
+          aria-label="Installa Web App"
+          title="Installa Afterglow Web App"
+        >
+          <span aria-hidden="true">📲</span>
+        </button>
+      {/if}
+
       <button
         class="icon-button"
         id="theme-toggle"

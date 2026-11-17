@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Afterglow is a small social space for conversations with a natural ending." />
+  <meta name="theme-color" content="#111110" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <title>Afterglow — keep the moment, not the archive</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -29,6 +33,15 @@
       </main>
     </noscript>
   </div>
+  <script>
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').catch(function(err) {
+          console.warn('SW registration failed:', err);
+        });
+      });
+    }
+  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
