@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { authRouter } from './routes/auth';
+import { postsRouter } from './routes/posts';
 import { sessionMiddleware } from './auth/session';
 
 export const app = new Hono();
@@ -14,3 +15,4 @@ app.get('/api/health', (c) => {
 });
 
 app.route('/api/auth', authRouter);
+app.route('/api/posts', postsRouter);
