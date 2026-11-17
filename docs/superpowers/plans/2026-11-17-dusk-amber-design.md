@@ -35,14 +35,14 @@
 - Test: `test_static.py`
 
 **Steps:**
-- [ ] Update `src/styles/tokens.css` with Dusk Amber tokens:
+- [x] Update `src/styles/tokens.css` with Dusk Amber tokens:
   - Dark mode variables (`--bg: #0a0b0e`, `--surface: #12141a`, `--surface-subtle: #181b22`, `--surface-hover: #1f232c`, `--line: rgba(255, 255, 255, 0.08)`, `--ink: #f1f3f7`, `--ink-secondary: #9ca3af`, `--ink-muted: #6b7280`, `--amber: #f59e0b`, `--amber-glow: 0 0 16px rgba(245, 158, 11, 0.22)`).
   - Light mode variables (`--bg: #f5f6f8`, `--surface: #ffffff`, `--surface-subtle: #eceef2`, `--line: rgba(0, 0, 0, 0.08)`, `--ink: #0f1218`, `--amber: #d97706`).
   - Radii: `--radius-xs: 2px`, `--radius-sm: 4px`, `--radius-md: 6px`. Remove `--radius-full`.
   - Typography: Sans (`Inter`, system-ui) and Tabular Mono.
-- [ ] Clean up `index.html`: replace star mark in `<noscript>` with SVG or clean text; verify `Good things<br /><em>can end.</em>` is intact for static contract.
-- [ ] Run `python3 test_static.py` and confirm `static contract: PASS`.
-- [ ] Commit: `git commit -m "style: replace tokens with dusk amber system and clean index.html"`
+- [x] Clean up `index.html`: replace star mark in `<noscript>` with SVG or clean text; verify `Good things<br /><em>can end.</em>` is intact for static contract.
+- [x] Run `python3 test_static.py` and confirm `static contract: PASS`.
+- [x] Commit: `git commit -m "style: replace tokens with dusk amber system and clean index.html"`
 
 ---
 
@@ -54,17 +54,17 @@
 - Test: `tests/ui.test.ts`
 
 **Steps:**
-- [ ] Refactor `src/components/Topbar.svelte`:
+- [x] Refactor `src/components/Topbar.svelte`:
   - 54px architectural height with hairline bottom border.
   - Brand mark: subtle amber glow dot + clean uppercase tracking wordmark `AFTERGLOW`.
   - Action buttons: squarish 32x32px (`border-radius: 4px`) with stroke SVG icons.
-- [ ] Redesign `src/components/HeroSection.svelte`:
+- [x] Redesign `src/components/HeroSection.svelte`:
   - Completely remove `.manifesto-card` ("The thesis", "No archive", pills).
   - Clean typographic header with sans-serif headline `Moments fade. That is the point.`
   - Subtitle: `A calm, finite social space where thoughts live for a brief time and leave no permanent archive.`
   - Subtle status strip: `Active temporal decay • Zero backlog • SQLite persistent`.
-- [ ] Run `npx vitest run tests/ui.test.ts` to ensure rendering passes.
-- [ ] Commit: `git commit -m "feat(ui): redesign topbar and replace ai-slop manifesto in hero"`
+- [x] Run `npx vitest run tests/ui.test.ts` to ensure rendering passes.
+- [x] Commit: `git commit -m "feat(ui): redesign topbar and replace ai-slop manifesto in hero"`
 
 ---
 
@@ -76,17 +76,17 @@
 - Test: `tests/ui.test.ts`
 
 **Steps:**
-- [ ] Refactor `src/components/FeedFilters.svelte`:
+- [x] Refactor `src/components/FeedFilters.svelte`:
   - Replace pill buttons with an architectural segmented tab bar.
   - Retain labels: `'All'`, `'Ending soon'`, `'Yours'`.
   - Active indicator: solid dark/amber surface (`border-radius: 4px`) with crisp border.
-- [ ] Refactor `src/components/Composer.svelte`:
+- [x] Refactor `src/components/Composer.svelte`:
   - Hairline border container with subtle focus ring.
   - Tabular monospace counter `x/420`.
   - Segmented lifetime selector (`24h`, `3d`, `7d`) with 4px border-radius buttons.
   - Solid amber Publish button (`border-radius: 4px`).
-- [ ] Run `npx vitest run tests/ui.test.ts` and verify all tests pass.
-- [ ] Commit: `git commit -m "feat(ui): redesign composer and feed filters without pills"`
+- [x] Run `npx vitest run tests/ui.test.ts` and verify all tests pass.
+- [x] Commit: `git commit -m "feat(ui): redesign composer and feed filters without pills"`
 
 ---
 
@@ -97,7 +97,7 @@
 - Test: `tests/ui.test.ts`, `tests/posts.test.ts`
 
 **Steps:**
-- [ ] Redesign `src/components/PostCard.svelte`:
+- [x] Redesign `src/components/PostCard.svelte`:
   - Card surface with `border-radius: 6px` and hairline border (`var(--line)`).
   - Author initials box: 32x32px square with `border-radius: 4px`.
   - Lifespan track: 1px subtle hairline countdown bar at top/bottom of card.
@@ -105,8 +105,8 @@
   - Ending-soon state (`< 1h` remaining): card hairline border glows amber (`var(--amber)`).
   - Reaction buttons: squarish buttons (`glow`, `warm`, `thought`), count display, active amber tint.
   - Reply thread: clean indentation without bubble clutter.
-- [ ] Run `npx vitest run tests/ui.test.ts tests/posts.test.ts` and verify all tests pass.
-- [ ] Commit: `git commit -m "feat(ui): redesign post card with dusk amber aesthetic and hairline decay"`
+- [x] Run `npx vitest run tests/ui.test.ts tests/posts.test.ts` and verify all tests pass.
+- [x] Commit: `git commit -m "feat(ui): redesign post card with dusk amber aesthetic and hairline decay"`
 
 ---
 
@@ -118,15 +118,15 @@
 - Test: `tests/auth.test.ts`, `tests/pwa.test.ts`
 
 **Steps:**
-- [ ] Restyle `src/components/PasskeyAuthModal.svelte`:
+- [x] Restyle `src/components/PasskeyAuthModal.svelte`:
   - Deep backdrop blur, obsidian modal surface with 6px border-radius and hairline border.
   - Clean inputs with tabular typography and amber focus outline.
-- [ ] Restyle `src/components/PwaInstallModal.svelte`:
+- [x] Restyle `src/components/PwaInstallModal.svelte`:
   - Retain full Supercell Store Pattern (carousel of screenshots + OS detection).
   - Clean guide steps with native SVG icons (share, plus, check).
   - Zero emojis in text, labels, or buttons.
-- [ ] Run `npx vitest run tests/auth.test.ts tests/pwa.test.ts` and verify.
-- [ ] Commit: `git commit -m "feat(ui): restyle passkey and pwa modals to match dusk amber design"`
+- [x] Run `npx vitest run tests/auth.test.ts tests/pwa.test.ts` and verify.
+- [x] Commit: `git commit -m "feat(ui): restyle passkey and pwa modals to match dusk amber design"`
 
 ---
 
@@ -136,8 +136,8 @@
 - Workspace scan across all files
 
 **Steps:**
-- [ ] Run zero-emoji scanner script: ensure 0 Unicode emojis across all files.
-- [ ] Run full test suite: `npx vitest run` (all 60 tests must pass).
-- [ ] Run static contract test: `python3 test_static.py`.
-- [ ] Run svelte & node checks: `npm run check` and `node --check scripts/dev.js`.
-- [ ] Commit: `git commit -m "chore: final quality verification for dusk amber design system"`
+- [x] Run zero-emoji scanner script: ensure 0 Unicode emojis across all files.
+- [x] Run full test suite: `npx vitest run` (all 60 tests must pass).
+- [x] Run static contract test: `python3 test_static.py`.
+- [x] Run svelte & node checks: `npm run check` and `node --check scripts/dev.js`.
+- [x] Commit: `git commit -m "chore: final quality verification for dusk amber design system"`
