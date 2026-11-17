@@ -47,7 +47,7 @@
   <div class="shell topbar-inner">
     <a class="brand" href="#top" aria-label="Afterglow home">
       <span class="brand-mark">
-        <Icon name="spark" size={16} />
+        <span class="brand-dot"></span>
       </span>
       <span class="brand-name">afterglow</span>
     </a>
@@ -61,8 +61,8 @@
           aria-label="Install web application"
           title="Install Afterglow"
         >
-          <Icon name="device" size={15} />
-          <span class="install-label">Install</span>
+          <Icon name="device" size={14} />
+          <span class="install-label">App</span>
         </button>
       {/if}
 
@@ -75,9 +75,9 @@
         title="Switch to {theme === 'light' ? 'dark' : 'light'} theme"
       >
         {#if theme === 'light'}
-          <Icon name="moon" size={16} />
+          <Icon name="moon" size={15} />
         {:else}
-          <Icon name="sun" size={16} />
+          <Icon name="sun" size={15} />
         {/if}
       </button>
 
@@ -86,7 +86,7 @@
           <span class="avatar avatar-small" title={activeUser.displayName || activeUser.username}>
             {userInitials}
           </span>
-          <span class="user-name">{activeUser.displayName || activeUser.username}</span>
+          <span class="user-name">@{activeUser.username}</span>
           <button
             class="logout-button"
             type="button"
@@ -102,8 +102,8 @@
           type="button"
           onclick={onAuthClick}
         >
-          <Icon name="key" size={14} />
-          <span>Sign in</span>
+          <Icon name="key" size={13} />
+          <span>Passkey</span>
         </button>
       {/if}
     </nav>
@@ -115,50 +115,50 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    background-color: rgba(var(--bg-rgb, 248, 246, 240), 0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--line-subtle);
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--line);
     transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
-  }
-
-  :global([data-theme="dark"]) .topbar {
-    background-color: rgba(18, 20, 18, 0.88);
   }
 
   .topbar-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 60px;
+    height: 54px;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 9px;
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--ink);
     transition: opacity var(--transition-fast);
   }
 
   .brand:hover {
-    opacity: 0.8;
+    opacity: 0.85;
   }
 
   .brand-mark {
-    color: var(--accent);
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
 
+  .brand-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-xs);
+    background: var(--amber);
+    box-shadow: var(--amber-glow);
+  }
+
   .brand-name {
     font-family: var(--sans);
-    font-size: 16px;
-    letter-spacing: -0.02em;
   }
 
   .top-actions {
@@ -171,12 +171,12 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    border-radius: var(--radius-full);
-    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
     font-weight: 500;
     color: var(--ink-secondary);
-    background: var(--surface-2);
+    background: var(--surface-subtle);
     border: 1px solid var(--line);
     transition: all var(--transition-fast);
   }
@@ -188,55 +188,56 @@
   }
 
   .icon-button {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-full);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--muted);
-    background: transparent;
-    border: 1px solid transparent;
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
     transition: all var(--transition-fast);
   }
 
   .icon-button:hover {
     color: var(--ink);
-    background: var(--surface-2);
-    border-color: var(--line);
+    background: var(--surface-hover);
+    border-color: var(--line-strong);
   }
 
   .user-menu {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding-left: 6px;
+    gap: 8px;
+    padding-left: 4px;
   }
 
   .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
-    background: var(--accent-soft);
-    color: var(--accent);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--amber);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 600;
-    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    border: 1px solid var(--line-strong);
   }
 
   .avatar-small {
     width: 28px;
     height: 28px;
-    font-size: 11px;
   }
 
   .user-name {
-    font-size: 13px;
+    font-family: var(--mono);
+    font-size: 12px;
     font-weight: 500;
-    color: var(--ink);
+    color: var(--ink-secondary);
     max-width: 140px;
     white-space: nowrap;
     overflow: hidden;
@@ -244,9 +245,9 @@
   }
 
   .logout-button {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
-    padding: 4px 8px;
+    padding: 4px 6px;
     border-radius: var(--radius-xs);
     transition: color var(--transition-fast);
   }
@@ -259,17 +260,18 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
-    border-radius: var(--radius-full);
-    font-size: 13px;
-    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
     background: var(--ink);
     color: var(--bg);
+    border: 1px solid var(--ink);
     transition: opacity var(--transition-fast);
   }
 
   .auth-button:hover {
-    opacity: 0.88;
+    opacity: 0.9;
   }
 
   @media (max-width: 600px) {

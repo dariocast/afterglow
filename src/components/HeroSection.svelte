@@ -2,150 +2,148 @@
   import Icon from './icons/Icon.svelte';
 </script>
 
-<section class="intro-grid">
-  <div class="intro-text">
-    <div class="eyebrow-wrap">
-      <span class="eyebrow-dot"></span>
-      <p class="eyebrow">A finite social space</p>
+<section class="hero-section">
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-pip"></span>
+      <span>Finite Social Protocol</span>
     </div>
-    <h1>Good things<br /><em>can end.</em></h1>
-    <p class="lede">
-      Share a thought, a reflection, or a quiet moment. Afterglow gives it room to breathe — then lets it go.
+    <h1 class="hero-title">Moments fade.<br />That is the point.</h1>
+    <p class="hero-lede">
+      A calm space for thoughts, reflections, and genuine presence.
+      Nothing here accumulates into a permanent backlog: moments live briefly and dissolve.
     </p>
   </div>
 
-  <div class="manifesto-card">
-    <div class="card-kicker">
-      <Icon name="spark" size={13} />
-      <span>The thesis</span>
+  <div class="hero-status-strip" role="status" aria-label="Network parameters">
+    <div class="status-item">
+      <span class="status-indicator"></span>
+      <span class="status-label">Expiry Engine</span>
+      <span class="status-value">Active</span>
     </div>
-    <p class="manifesto-quote">Nothing here is meant to become an accumulating backlog.</p>
-    <div class="manifesto-meta">
-      <span class="meta-tag">No archive</span>
-      <span class="meta-tag">No infinite scroll</span>
-      <span class="meta-tag">Natural closure</span>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span class="status-label">Archive Policy</span>
+      <span class="status-value">Zero Backlog</span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item">
+      <span class="status-label">Storage</span>
+      <span class="status-value">Local SQLite</span>
     </div>
   </div>
 </section>
 
 <style>
-  .intro-grid {
-    padding: 72px 0 56px;
-    display: grid;
-    grid-template-columns: 1.25fr 0.85fr;
-    gap: 64px;
-    align-items: end;
-  }
-
-  .eyebrow-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-
-  .eyebrow-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: var(--radius-full);
-    background: var(--accent);
-  }
-
-  .eyebrow {
-    color: var(--accent);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin: 0;
-  }
-
-  h1 {
-    font-family: var(--serif);
-    font-size: clamp(44px, 6.2vw, 80px);
-    line-height: 0.94;
-    letter-spacing: -0.04em;
-    font-weight: 400;
-    margin: 0 0 24px;
-    color: var(--ink);
-  }
-
-  h1 em {
-    color: var(--accent);
-    font-style: italic;
-    font-weight: 300;
-  }
-
-  .lede {
-    max-width: 460px;
-    color: var(--muted);
-    line-height: 1.65;
-    font-size: 16px;
-    font-weight: 400;
-    margin: 0;
-  }
-
-  .manifesto-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    padding: 32px 32px 28px;
+  .hero-section {
+    padding: 48px 0 36px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    min-height: 200px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    position: relative;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    gap: 28px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
   }
 
-  .manifesto-card:hover {
-    border-color: var(--line-strong);
-    box-shadow: var(--shadow-md);
+  .hero-content {
+    max-width: 680px;
   }
 
-  .card-kicker {
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--amber);
+    margin-bottom: 16px;
+  }
+
+  .eyebrow-pip {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-xs);
+    background: var(--amber);
+    box-shadow: var(--amber-glow);
+  }
+
+  .hero-title {
+    font-family: var(--sans);
+    font-size: clamp(34px, 4.8vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 16px;
+  }
+
+  .hero-lede {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: 0;
+    max-width: 580px;
+  }
+
+  .hero-status-strip {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 16px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    width: fit-content;
   }
 
-  .manifesto-quote {
-    font-family: var(--serif);
-    font-size: clamp(21px, 2.4vw, 26px);
-    line-height: 1.25;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin: 20px 0;
-    font-weight: 400;
-  }
-
-  .manifesto-meta {
-    display: flex;
-    flex-wrap: wrap;
+  .status-item {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
   }
 
-  .meta-tag {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-    background: var(--surface-2);
-    padding: 4px 10px;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--line-subtle);
+  .status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-xs);
+    background: var(--success);
   }
 
-  @media (max-width: 860px) {
-    .intro-grid {
-      grid-template-columns: 1fr;
-      gap: 36px;
-      padding: 44px 0 36px;
+  .status-label {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .status-value {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .status-divider {
+    width: 1px;
+    height: 12px;
+    background: var(--line);
+  }
+
+  @media (max-width: 640px) {
+    .hero-section {
+      padding: 32px 0 24px;
+      gap: 20px;
+    }
+    .hero-status-strip {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      width: 100%;
+    }
+    .status-divider {
+      display: none;
     }
   }
 </style>
