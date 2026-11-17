@@ -33,14 +33,14 @@
 - Test: `test_static.py`
 
 **Steps:**
-- [ ] Configure dot-grid paper tokens in `src/styles/tokens.css`:
+- [x] Configure dot-grid paper tokens in `src/styles/tokens.css`:
   - `--shell-max: 620px` (Moleskine journal column width).
   - Light mode: `--bg: #fbf9f5` (warm ivory), `--dot-color: rgba(0, 0, 0, 0.075)`, `--ink: #1c1d1f`, `--ink-secondary: #5a5c61`, `--line: rgba(0, 0, 0, 0.08)`.
   - Dark mode: `--bg: #141517` (graphite charcoal), `--dot-color: rgba(255, 255, 255, 0.06)`, `--ink: #f0ede6`, `--ink-secondary: #8e9096`, `--line: rgba(255, 255, 255, 0.08)`.
   - Body background: apply procedural dot-grid via `radial-gradient(var(--dot-color) 1px, transparent 1px)` with `background-size: 20px 20px`.
   - Typography: import and configure `Newsreader` / `Lora` for `--serif` / `--font-content`.
-- [ ] Run `python3 test_static.py` to confirm static contract.
-- [ ] Commit: `git commit -m "style: implement moleskine dot grid and editorial tokens"`
+- [x] Run `python3 test_static.py` to confirm static contract.
+- [x] Commit: `git commit -m "style: implement moleskine dot grid and editorial tokens"`
 
 ---
 
@@ -52,16 +52,16 @@
 - Test: `tests/ui.test.ts`
 
 **Steps:**
-- [ ] Refactor `src/components/Topbar.svelte`:
+- [x] Refactor `src/components/Topbar.svelte`:
   - Sleek 50px topbar with dot-grid matching backdrop blur.
   - Clean wordmark `afterglow`.
   - Minimalist controls for theme switcher and Passkey auth.
-- [ ] Simplify `src/components/HeroSection.svelte`:
+- [x] Simplify `src/components/HeroSection.svelte`:
   - Remove all status strips and developer metrics.
   - Quiet, clean header: `Moments fade.<br />That is the point.`
   - Direct, sober subtitle: `A finite space where conversations end naturally.`
-- [ ] Run `npx vitest run tests/ui.test.ts` and verify.
-- [ ] Commit: `git commit -m "feat(ui): streamline topbar and remove debug status from hero"`
+- [x] Run `npx vitest run tests/ui.test.ts` and verify.
+- [x] Commit: `git commit -m "feat(ui): streamline topbar and remove debug status from hero"`
 
 ---
 
@@ -72,14 +72,14 @@
 - Test: `tests/ui.test.ts`
 
 **Steps:**
-- [ ] Refactor `src/components/Composer.svelte`:
+- [x] Refactor `src/components/Composer.svelte`:
   - Seamless writing area without heavy card borders; subtle top/bottom hairline divider.
   - Clean placeholder: `What's on your mind?`
   - Inline lifespan selector (`24h · 3d · 7d`) with quiet tactile buttons.
   - Tabular monospace counter `x/420`.
   - Direct "Publish" / "Post" button.
-- [ ] Run `npx vitest run tests/ui.test.ts` and verify.
-- [ ] Commit: `git commit -m "feat(ui): redesign composer into seamless stream input"`
+- [x] Run `npx vitest run tests/ui.test.ts` and verify.
+- [x] Commit: `git commit -m "feat(ui): redesign composer into seamless stream input"`
 
 ---
 
@@ -90,15 +90,15 @@
 - Test: `tests/ui.test.ts`, `tests/posts.test.ts`
 
 **Steps:**
-- [ ] Redesign `src/components/PostCard.svelte`:
+- [x] Redesign `src/components/PostCard.svelte`:
   - Remove outer card box, background fill, and heavy box-shadow.
   - Render as an open stream entry with `border-bottom: 1px solid var(--line)` and generous vertical padding (24px).
   - Header: Author name (weight 600), handle (`@user`), discreet expiry label (`22h left`) in top right.
   - Lifespan decay: delicate 1px progress hairline across the post header.
   - Content: printed editorial serif (`Newsreader` / `Lora`), 16px, `line-height: 1.55`.
   - Actions row: subtle counters with clean stroke SVG icons for `glow`, `warm`, `thought`.
-- [ ] Run `npx vitest run tests/ui.test.ts tests/posts.test.ts` and verify.
-- [ ] Commit: `git commit -m "feat(ui): transform post card into fluid editorial stream item"`
+- [x] Run `npx vitest run tests/ui.test.ts tests/posts.test.ts` and verify.
+- [x] Commit: `git commit -m "feat(ui): transform post card into fluid editorial stream item"`
 
 ---
 
@@ -110,14 +110,14 @@
 - Test: `tests/ui.test.ts`
 
 **Steps:**
-- [ ] Refactor `src/components/FeedFilters.svelte`:
+- [x] Refactor `src/components/FeedFilters.svelte`:
   - Clean inline filter row: `All · Ending soon · Yours`.
   - Active state: subtle ink underline or quiet highlight.
-- [ ] Polish `src/App.svelte`:
+- [x] Polish `src/App.svelte`:
   - Ensure main container is perfectly centered at `max-width: 620px`.
   - Streamlined empty state and loading feedback.
-- [ ] Run `npx vitest run tests/ui.test.ts` and verify.
-- [ ] Commit: `git commit -m "feat(ui): polish stream layout and navigation"`
+- [x] Run `npx vitest run tests/ui.test.ts` and verify.
+- [x] Commit: `git commit -m "feat(ui): polish stream layout and navigation"`
 
 ---
 
@@ -127,9 +127,9 @@
 - Workspace scan across all files
 
 **Steps:**
-- [ ] Run zero-emoji scanner script: ensure 0 Unicode emojis across all files.
-- [ ] Run full test suite: `npx vitest run` (all 60 tests must pass).
-- [ ] Run static contract test: `python3 test_static.py`.
-- [ ] Run TypeScript checks: `npm run check`.
-- [ ] Build production assets: `npm run build`.
-- [ ] Commit: `git commit -m "chore: final quality verification for moleskine dot grid design"`
+- [x] Run zero-emoji scanner script: ensure 0 Unicode emojis across all files.
+- [x] Run full test suite: `npx vitest run` (all 60 tests must pass).
+- [x] Run static contract test: `python3 test_static.py`.
+- [x] Run TypeScript checks: `npm run check`.
+- [x] Build production assets: `npm run build`.
+- [x] Commit: `git commit -m "chore: final quality verification for moleskine dot grid design"`
