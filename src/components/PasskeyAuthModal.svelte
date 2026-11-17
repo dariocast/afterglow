@@ -89,18 +89,18 @@
         onclick={handleClose}
         aria-label="Close dialog"
       >
-        <Icon name="close" size={16} />
+        <Icon name="close" size={15} />
       </button>
 
       <div class="modal-header">
         <div class="modal-icon-badge">
-          <Icon name="fingerprint" size={24} />
+          <Icon name="fingerprint" size={22} />
         </div>
         <h2 id="auth-modal-title">
           {mode === 'register' ? 'Join with Passkey' : 'Welcome back'}
         </h2>
         <p class="modal-subtitle">
-          Passwordless biometric authentication directly on your device.
+          Hardware-secured biometric authentication. No passwords stored.
         </p>
       </div>
 
@@ -148,7 +148,7 @@
               id="auth-display-name"
               type="text"
               bind:value={displayName}
-              placeholder="e.g. Dario C."
+              placeholder="e.g. Dario Castellano"
               autocomplete="name"
               disabled={authStore.isLoading}
             />
@@ -162,25 +162,27 @@
         {/if}
 
         <button
-          class="submit-auth-btn"
           type="submit"
-          disabled={authStore.isLoading || !username.trim()}
+          class="submit-auth-btn"
+          disabled={authStore.isLoading}
         >
           {#if authStore.isLoading}
             <span class="spinner" aria-hidden="true"></span>
-            <span>Verifying with biometric sensor…</span>
+            <span>Verifying device…</span>
           {:else if mode === 'register'}
-            <Icon name="fingerprint" size={16} />
+            <Icon name="key" size={14} />
             <span>Register with Passkey & Enter</span>
           {:else}
-            <Icon name="key" size={16} />
+            <Icon name="key" size={14} />
             <span>Log in with Passkey</span>
           {/if}
         </button>
       </form>
 
       <div class="modal-note">
-        <p>Your biometric data stays strictly on your device hardware (Touch ID, Face ID or Windows Hello). No password is ever stored or transmitted.</p>
+        <p>
+          Passkeys use public-key cryptography (FIDO2 / WebAuthn). Your biometric data never leaves your hardware authenticator.
+        </p>
       </div>
     </div>
   </div>
@@ -191,7 +193,7 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(18, 20, 18, 0.65);
+    background: rgba(10, 11, 14, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
@@ -203,57 +205,60 @@
 
   .modal-card {
     background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    border: 1px solid var(--line-focus);
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     width: 100%;
-    max-width: 440px;
-    padding: 32px;
+    max-width: 420px;
+    padding: 28px;
     position: relative;
     animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .modal-close {
     position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-xs);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--muted);
+    border: 1px solid transparent;
     transition: all var(--transition-fast);
   }
 
   .modal-close:hover {
     color: var(--ink);
-    background: var(--surface-2);
+    background: var(--surface-subtle);
+    border-color: var(--line);
   }
 
   .modal-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 
   .modal-icon-badge {
-    width: 52px;
-    height: 52px;
-    border-radius: var(--radius-full);
-    background: var(--accent-soft);
-    color: var(--accent);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--amber-subtle);
+    color: var(--amber);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
-    border: 1px solid rgba(var(--accent-rgb), 0.15);
+    margin-bottom: 12px;
+    border: 1px solid var(--amber);
+    box-shadow: var(--amber-glow);
   }
 
   .modal-header h2 {
-    font-family: var(--serif);
-    font-size: 26px;
-    font-weight: 400;
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink);
     margin: 0 0 6px;
@@ -263,25 +268,27 @@
     font-size: 13px;
     color: var(--muted);
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.45;
   }
 
   .auth-tabs {
     display: flex;
-    background: var(--surface-2);
+    background: var(--surface-subtle);
     padding: 3px;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--line-subtle);
-    margin-bottom: 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    margin-bottom: 18px;
+    gap: 2px;
   }
 
   .tab-btn {
     flex: 1;
-    padding: 7px 12px;
-    font-size: 13px;
+    padding: 6px 10px;
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 500;
     color: var(--muted);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-xs);
     text-align: center;
     transition: all var(--transition-fast);
   }
@@ -293,6 +300,7 @@
   .tab-btn.active {
     background: var(--surface);
     color: var(--ink);
+    border: 1px solid var(--line-strong);
     box-shadow: var(--shadow-xs);
     font-weight: 600;
   }
@@ -300,45 +308,48 @@
   .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
   }
 
   .form-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
     text-align: left;
   }
 
   .form-group label {
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 500;
     color: var(--ink-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .form-group input {
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: var(--bg);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xs);
     color: var(--ink);
-    font-size: 14px;
+    font-size: 13px;
     transition: all var(--transition-fast);
   }
 
   .form-group input:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--amber);
     background: var(--surface);
   }
 
   .error-banner {
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: var(--danger-soft);
     color: var(--danger);
-    font-size: 13px;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(220, 38, 38, 0.2);
+    font-size: 12px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--danger);
     line-height: 1.4;
   }
 
@@ -348,43 +359,48 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 12px;
-    background: var(--ink);
-    color: var(--bg);
-    border-radius: var(--radius-full);
-    font-size: 14px;
-    font-weight: 500;
-    margin-top: 6px;
+    padding: 10px;
+    background: var(--amber);
+    color: #0a0b0e;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--amber);
+    box-shadow: var(--amber-glow);
+    margin-top: 4px;
     transition: all var(--transition-fast);
   }
 
   .submit-auth-btn:hover:not(:disabled) {
-    opacity: 0.9;
+    background: var(--accent-hover);
     transform: translateY(-1px);
   }
 
   .submit-auth-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
   }
 
   .spinner {
     width: 14px;
     height: 14px;
-    border: 2px solid var(--bg);
+    border: 2px solid #0a0b0e;
     border-top-color: transparent;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
 
   .modal-note {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line-subtle);
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
   }
 
   .modal-note p {
-    font-size: 11px;
+    font-family: var(--mono);
+    font-size: 10px;
     color: var(--muted);
     line-height: 1.5;
     margin: 0;

@@ -263,7 +263,7 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(18, 20, 18, 0.65);
+    background: rgba(10, 11, 14, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     display: flex;
@@ -275,59 +275,62 @@
 
   .modal-card {
     background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    border: 1px solid var(--line-focus);
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
     width: 100%;
-    max-width: 520px;
+    max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    padding: 32px;
+    padding: 28px;
     position: relative;
     animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .modal-close {
     position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-xs);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--muted);
+    border: 1px solid transparent;
     transition: all var(--transition-fast);
   }
 
   .modal-close:hover {
     color: var(--ink);
-    background: var(--surface-2);
+    background: var(--surface-subtle);
+    border-color: var(--line);
   }
 
   .modal-header {
     text-align: center;
-    margin-bottom: 22px;
+    margin-bottom: 20px;
   }
 
   .modal-icon-badge {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-full);
-    background: var(--accent-soft);
-    color: var(--accent);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--amber-subtle);
+    color: var(--amber);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 14px;
-    border: 1px solid rgba(var(--accent-rgb), 0.15);
+    margin-bottom: 12px;
+    border: 1px solid var(--amber);
+    box-shadow: var(--amber-glow);
   }
 
   .modal-header h2 {
-    font-family: var(--serif);
-    font-size: 24px;
-    font-weight: 400;
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink);
     margin: 0 0 6px;
@@ -337,15 +340,15 @@
     font-size: 13px;
     color: var(--muted);
     margin: 0;
-    line-height: 1.5;
+    line-height: 1.45;
   }
 
   .carousel-container {
-    background: var(--surface-2);
-    border: 1px solid var(--line-subtle);
-    border-radius: var(--radius-md);
-    padding: 18px 14px 14px;
-    margin-bottom: 22px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 16px 12px 12px;
+    margin-bottom: 20px;
   }
 
   .carousel-viewport {
@@ -364,14 +367,14 @@
   }
 
   .screenshot-frame {
-    width: 140px;
-    height: 200px;
-    border-radius: 12px;
+    width: 130px;
+    height: 190px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
     background: var(--bg);
-    border: 2px solid var(--line);
+    border: 1px solid var(--line-strong);
     box-shadow: var(--shadow-sm);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .screenshot-img {
@@ -382,23 +385,23 @@
   }
 
   .slide-caption h4 {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--ink);
-    margin: 0 0 4px;
+    margin: 0 0 3px;
   }
 
   .slide-caption p {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.35;
   }
 
   .carousel-nav-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-xs);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -416,52 +419,54 @@
   .carousel-dots {
     display: flex;
     justify-content: center;
-    gap: 6px;
-    margin-top: 12px;
+    gap: 5px;
+    margin-top: 10px;
   }
 
   .carousel-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: var(--radius-full);
+    width: 14px;
+    height: 3px;
+    border-radius: 1px;
     background: var(--line-strong);
+    border: none;
+    padding: 0;
     transition: all var(--transition-fast);
   }
 
   .carousel-dot.active {
-    width: 18px;
-    background: var(--accent);
+    background: var(--amber);
+    box-shadow: var(--amber-glow);
   }
 
   .benefits-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 22px;
+    gap: 12px;
+    margin-bottom: 20px;
   }
 
   .benefit-item {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
   }
 
   .benefit-icon-badge {
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radius-sm);
-    background: var(--surface-2);
-    color: var(--ink-secondary);
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-subtle);
+    color: var(--amber);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    border: 1px solid var(--line-subtle);
+    border: 1px solid var(--line);
   }
 
   .benefit-item strong {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--ink);
     margin-bottom: 2px;
@@ -469,15 +474,15 @@
   }
 
   .benefit-item p {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--muted);
     margin: 0;
-    line-height: 1.35;
+    line-height: 1.3;
   }
 
   .install-action-area {
-    padding-top: 16px;
-    border-top: 1px solid var(--line-subtle);
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
   }
 
   .primary-install-btn {
@@ -486,24 +491,27 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 12px;
-    background: var(--ink);
-    color: var(--bg);
-    border-radius: var(--radius-full);
-    font-size: 14px;
-    font-weight: 500;
+    padding: 10px;
+    background: var(--amber);
+    color: #0a0b0e;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--amber);
+    box-shadow: var(--amber-glow);
     transition: all var(--transition-fast);
   }
 
   .primary-install-btn:hover:not(:disabled) {
-    opacity: 0.9;
+    background: var(--accent-hover);
     transform: translateY(-1px);
   }
 
   .install-status {
     text-align: center;
-    font-size: 13px;
-    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
     margin: 8px 0 0;
   }
 
@@ -511,18 +519,19 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 14px;
+    padding: 10px 12px;
     background: var(--success-soft);
-    border: 1px solid rgba(62, 123, 84, 0.2);
+    border: 1px solid var(--success);
     border-radius: var(--radius-sm);
     color: var(--success);
   }
 
   .notice-icon-wrap {
-    width: 24px;
-    height: 24px;
-    border-radius: var(--radius-full);
-    background: rgba(62, 123, 84, 0.15);
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-xs);
+    background: var(--success);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -531,28 +540,31 @@
 
   .standalone-notice strong {
     display: block;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--ink);
   }
 
   .standalone-notice p {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
     margin: 0;
   }
 
   .ios-guide {
-    background: var(--surface-2);
-    border: 1px solid var(--line-subtle);
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
     border-radius: var(--radius-sm);
-    padding: 14px 16px;
+    padding: 12px 14px;
   }
 
   .ios-guide-title {
-    font-size: 13px;
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 600;
     color: var(--ink);
-    margin: 0 0 10px;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .ios-steps {
@@ -561,27 +573,29 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
   .ios-steps li {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--ink-secondary);
   }
 
   .step-num {
-    width: 18px;
-    height: 18px;
-    border-radius: var(--radius-full);
-    background: var(--line);
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-xs);
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
     color: var(--ink);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
     font-weight: 600;
     flex-shrink: 0;
   }
@@ -590,15 +604,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 1px 4px;
+    padding: 1px 3px;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
     margin: 0 2px;
   }
 
   .generic-guide p {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
     line-height: 1.5;
     margin: 0;
