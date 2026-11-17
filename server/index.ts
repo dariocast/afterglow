@@ -30,6 +30,7 @@ serve(
   {
     fetch: app.fetch,
     port,
+    hostname: '0.0.0.0',
   },
   (info) => {
     console.log(`Server listening on http://localhost:${info.port}`);
