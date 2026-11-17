@@ -1,14 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { app } from '../server/app';
-import { db, users, posts, reactions, replies } from '../server/db';
+import { db, users, posts, reactions, replies, follows } from '../server/db';
 import { purgeExpiredPosts, startReaper, stopReaper } from '../server/services/reaper';
 import { createSessionCookie } from '../server/auth/session';
 
 describe('Posts API & Expiry Reaper', () => {
   const user1Id = 'u-poster-1';
   const user2Id = 'u-poster-2';
+  const user3Id = 'u-poster-3';
 
   beforeEach(async () => {
+    await db.delete(follows);
     await db.delete(replies);
     await db.delete(reactions);
     await db.delete(posts);
@@ -18,6 +20,8 @@ describe('Posts API & Expiry Reaper', () => {
       id: user1Id,
       username: 'tester1',
       displayName: 'Tester One',
+      bio: 'Quiet dusk observer',
+      avatarColor: '#d97757',
       createdAt: new Date(),
     });
 
@@ -25,6 +29,8 @@ describe('Posts API & Expiry Reaper', () => {
       id: user2Id,
       username: 'tester2',
       displayName: 'Tester Two',
+      bio: 'Collecting fleeting embers',
+      avatarColor: '#6d8b74',
       createdAt: new Date(),
     });
   });
@@ -136,6 +142,133 @@ describe('Posts API & Expiry Reaper', () => {
       expect(mineIds).toContain('p-user1-fresh');
       expect(mineIds).not.toContain('p-user2-ending');
     });
+
+    it('returns 401 for filter=following when unauthenticated', async () => {
+      const res = await app.request('/api/posts?filter=following');
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.error).toBe('Unauthorized');
+    });
+
+    it('returns empty array for filter=following when authenticated user follows no one', async () => {
+      await db.insert(posts).values({
+        id: 'p-user2-public',
+        authorId: user2Id,
+        content: 'Unfollowed active moment',
+        lifetimeHours: 24,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 24 * 3600 * 1000),
+      });
+
+      const cookieHeader = await createSessionCookie(user1Id);
+      const res = await app.request('/api/posts?filter=following', {
+        headers: { Cookie: cookieHeader.split(';')[0] },
+      });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual([]);
+    });
+
+    it('returns active moments from followed authors only and includes author bio and avatarColor', async () => {
+      await db.insert(users).values({
+        id: user3Id,
+        username: 'tester3',
+        displayName: 'Tester Three',
+        bio: 'Not followed here',
+        avatarColor: '#5b7c99',
+        createdAt: new Date(),
+      });
+
+      await db.insert(follows).values({
+        id: 'f-1-to-2',
+        followerId: user1Id,
+        followingId: user2Id,
+        createdAt: new Date(),
+      });
+
+      const now = Date.now();
+
+      // Followed author's older active post
+      await db.insert(posts).values({
+        id: 'p-followed-older',
+        authorId: user2Id,
+        content: 'Followed older active moment',
+        lifetimeHours: 24,
+        createdAt: new Date(now - 2 * 3600 * 1000),
+        expiresAt: new Date(now + 10 * 3600 * 1000),
+      });
+
+      // Followed author's newer active post
+      await db.insert(posts).values({
+        id: 'p-followed-newer',
+        authorId: user2Id,
+        content: 'Followed newer active moment',
+        lifetimeHours: 24,
+        createdAt: new Date(now - 1 * 3600 * 1000),
+        expiresAt: new Date(now + 20 * 3600 * 1000),
+      });
+
+      // Followed author's expired post (must be excluded)
+      await db.insert(posts).values({
+        id: 'p-followed-expired',
+        authorId: user2Id,
+        content: 'Followed expired moment',
+        lifetimeHours: 24,
+        createdAt: new Date(now - 30 * 3600 * 1000),
+        expiresAt: new Date(now - 1 * 3600 * 1000),
+      });
+
+      // Non-followed author's active post (must be excluded)
+      await db.insert(posts).values({
+        id: 'p-unfollowed-active',
+        authorId: user3Id,
+        content: 'Non-followed active moment',
+        lifetimeHours: 24,
+        createdAt: new Date(now),
+        expiresAt: new Date(now + 24 * 3600 * 1000),
+      });
+
+      // Self post when user1 does not follow user1 (must be excluded)
+      await db.insert(posts).values({
+        id: 'p-self-active',
+        authorId: user1Id,
+        content: 'Own active moment',
+        lifetimeHours: 24,
+        createdAt: new Date(now),
+        expiresAt: new Date(now + 24 * 3600 * 1000),
+      });
+
+      // Reply by user1 on followed post to verify reply author bio and avatarColor
+      await db.insert(replies).values({
+        id: 'r-on-followed',
+        postId: 'p-followed-newer',
+        authorId: user1Id,
+        content: 'Warm echo',
+        createdAt: new Date(now),
+      });
+
+      const cookieHeader = await createSessionCookie(user1Id);
+      const res = await app.request('/api/posts?filter=following', {
+        headers: { Cookie: cookieHeader.split(';')[0] },
+      });
+      expect(res.status).toBe(200);
+      const feed = await res.json();
+
+      expect(feed.map((p: any) => p.id)).toEqual(['p-followed-newer', 'p-followed-older']);
+      expect(feed[0].author).toEqual({
+        id: user2Id,
+        username: 'tester2',
+        displayName: 'Tester Two',
+        bio: 'Collecting fleeting embers',
+        avatarColor: '#6d8b74',
+      });
+      expect(feed[0].replies[0].author).toEqual({
+        id: user1Id,
+        username: 'tester1',
+        displayName: 'Tester One',
+        bio: 'Quiet dusk observer',
+        avatarColor: '#d97757',
+      });
+    });
   });
 
   describe('POST /api/posts', () => {
@@ -195,6 +328,8 @@ describe('Posts API & Expiry Reaper', () => {
       expect(post.lifetimeHours).toBe(72);
       expect(post.author.id).toBe(user1Id);
       expect(post.author.username).toBe('tester1');
+      expect(post.author.bio).toBe('Quiet dusk observer');
+      expect(post.author.avatarColor).toBe('#d97757');
 
       const expiresTime = new Date(post.expiresAt).getTime();
       const expectedExpiresTime = beforeTime + 72 * 3600 * 1000;
@@ -391,6 +526,8 @@ describe('Posts API & Expiry Reaper', () => {
       expect(reply.content).toBe('Resonating with this deeply.');
       expect(reply.author.id).toBe(user1Id);
       expect(reply.author.username).toBe('tester1');
+      expect(reply.author.bio).toBe('Quiet dusk observer');
+      expect(reply.author.avatarColor).toBe('#d97757');
 
       // Verify replies in feed
       const resFeed = await app.request('/api/posts?filter=all');

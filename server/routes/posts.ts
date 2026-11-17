@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { eq, and, gt, lte, desc, asc, inArray } from 'drizzle-orm';
-import { db, posts, reactions, replies, users } from '../db';
+import { db, posts, reactions, replies, users, follows, type User } from '../db';
 import { requireAuth, getSessionUser } from '../auth/session';
 
 export const postsRouter = new Hono();
@@ -9,8 +9,26 @@ const VALID_LIFETIMES = [24, 72, 168];
 const VALID_REACTION_KINDS = ['glow', 'warm', 'thought'] as const;
 type ReactionKind = (typeof VALID_REACTION_KINDS)[number];
 
+const authorSelect = {
+  id: users.id,
+  username: users.username,
+  displayName: users.displayName,
+  bio: users.bio,
+  avatarColor: users.avatarColor,
+};
+
+function serializeAuthor(user: User) {
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    bio: user.bio,
+    avatarColor: user.avatarColor,
+  };
+}
+
 /**
- * GET /api/posts?filter=[all|ending|mine]
+ * GET /api/posts?filter=[all|ending|mine|following]
  * Returns active, non-expired posts matching filter.
  */
 postsRouter.get('/', async (c) => {
@@ -27,6 +45,19 @@ postsRouter.get('/', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
     whereClause = and(gt(posts.expiresAt, now), eq(posts.authorId, currentUser.id));
+  } else if (filter === 'following') {
+    if (!currentUser) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+    const followRows = await db
+      .select({ followingId: follows.followingId })
+      .from(follows)
+      .where(eq(follows.followerId, currentUser.id));
+    if (followRows.length === 0) {
+      return c.json([]);
+    }
+    const followedIds = followRows.map((row) => row.followingId);
+    whereClause = and(gt(posts.expiresAt, now), inArray(posts.authorId, followedIds));
   } else if (filter === 'ending') {
     const endingThreshold = new Date(now.getTime() + 48 * 3600 * 1000);
     whereClause = and(gt(posts.expiresAt, now), lte(posts.expiresAt, endingThreshold));
@@ -45,11 +76,7 @@ postsRouter.get('/', async (c) => {
       lifetimeHours: posts.lifetimeHours,
       createdAt: posts.createdAt,
       expiresAt: posts.expiresAt,
-      author: {
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-      },
+      author: authorSelect,
     })
     .from(posts)
     .innerJoin(users, eq(posts.authorId, users.id))
@@ -76,11 +103,7 @@ postsRouter.get('/', async (c) => {
       authorId: replies.authorId,
       content: replies.content,
       createdAt: replies.createdAt,
-      author: {
-        id: users.id,
-        username: users.username,
-        displayName: users.displayName,
-      },
+      author: authorSelect,
     })
     .from(replies)
     .innerJoin(users, eq(replies.authorId, users.id))
@@ -182,11 +205,7 @@ postsRouter.post('/', requireAuth, async (c) => {
   return c.json(
     {
       ...newPost,
-      author: {
-        id: user.id,
-        username: user.username,
-        displayName: user.displayName,
-      },
+      author: serializeAuthor(user),
       reactions: { glow: 0, warm: 0, thought: 0 },
       userReaction: null,
       replies: [],
@@ -366,11 +385,7 @@ postsRouter.post('/:id/replies', requireAuth, async (c) => {
       authorId: user.id,
       content: trimmedContent,
       createdAt: now,
-      author: {
-        id: user.id,
-        username: user.username,
-        displayName: user.displayName,
-      },
+      author: serializeAuthor(user),
     },
     201
   );
