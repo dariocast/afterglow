@@ -201,7 +201,7 @@
           <h2 id="feed-title">The living room</h2>
         </div>
         <FeedFilters
-          currentFilter={activeFilter}
+          activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
         />
       </div>
@@ -285,9 +285,9 @@
   }
 
   .pwa-banner {
-    background: var(--surface-2);
+    background: var(--surface-subtle);
     border-bottom: 1px solid var(--line);
-    padding: 10px 0;
+    padding: 8px 0;
     animation: fadeIn 0.2s ease-out;
   }
 
@@ -302,8 +302,8 @@
   .pwa-banner-text {
     display: flex;
     align-items: center;
-    gap: 9px;
-    font-size: 13px;
+    gap: 8px;
+    font-size: 12px;
     color: var(--ink-secondary);
   }
 
@@ -314,60 +314,65 @@
   }
 
   .pwa-banner-btn.primary {
-    padding: 5px 12px;
-    background: var(--ink);
-    color: var(--bg);
-    border-radius: var(--radius-full);
-    font-size: 12px;
-    font-weight: 500;
+    padding: 5px 10px;
+    background: var(--amber);
+    color: #0a0b0e;
+    border-radius: var(--radius-xs);
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--amber);
+    box-shadow: var(--amber-glow);
     transition: opacity var(--transition-fast);
   }
 
   .pwa-banner-btn.primary:hover {
-    opacity: 0.88;
+    opacity: 0.9;
   }
 
   .pwa-banner-btn.dismiss {
-    width: 26px;
-    height: 26px;
-    border-radius: var(--radius-full);
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-xs);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--muted);
+    border: 1px solid transparent;
     transition: all var(--transition-fast);
   }
 
   .pwa-banner-btn.dismiss:hover {
     color: var(--ink);
     background: var(--surface);
+    border-color: var(--line);
   }
 
   .section-heading {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     gap: 16px;
     flex-wrap: wrap;
-    border-bottom: 1px solid var(--line-subtle);
-    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
   }
 
   .heading-title-wrap h2 {
-    font-family: var(--serif);
-    font-size: 28px;
-    font-weight: 400;
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--ink);
     margin: 4px 0 0;
   }
 
   .eyebrow {
-    color: var(--accent);
-    font-size: 11px;
+    color: var(--amber);
+    font-family: var(--mono);
+    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     margin: 0;
   }
@@ -378,70 +383,75 @@
   }
 
   .loading-state {
-    padding: 60px 0;
+    padding: 48px 0;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     color: var(--muted);
-    font-size: 14px;
+    font-family: var(--mono);
+    font-size: 12px;
   }
 
   .spinner {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border: 2px solid var(--line);
-    border-top-color: var(--accent);
+    border-top-color: var(--amber);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
 
   .error-state {
-    padding: 32px;
+    padding: 24px;
     background: var(--danger-soft);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
     text-align: center;
     color: var(--danger);
+    font-size: 13px;
   }
 
   .retry-btn {
-    margin-top: 12px;
-    padding: 6px 16px;
+    margin-top: 10px;
+    padding: 5px 12px;
     background: var(--danger);
     color: #fff;
-    border-radius: var(--radius-full);
-    font-size: 13px;
-    font-weight: 500;
+    border-radius: var(--radius-xs);
+    font-size: 12px;
+    font-weight: 600;
   }
 
   .empty-state {
-    padding: 64px 20px;
+    padding: 56px 20px;
     text-align: center;
     background: var(--surface);
     border: 1px dashed var(--line);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
   .empty-icon-wrap {
-    width: 44px;
-    height: 44px;
-    border-radius: var(--radius-full);
-    background: var(--surface-2);
-    color: var(--accent);
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-xs);
+    background: var(--surface-subtle);
+    color: var(--amber);
+    border: 1px solid var(--amber);
+    box-shadow: var(--amber-glow);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .empty-title {
-    font-family: var(--serif);
-    font-size: 20px;
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 600;
     color: var(--ink);
     margin: 0 0 6px;
   }
@@ -450,17 +460,18 @@
     font-size: 13px;
     color: var(--muted);
     max-width: 360px;
-    margin: 0 0 18px;
-    line-height: 1.5;
+    margin: 0 0 16px;
+    line-height: 1.45;
   }
 
   .reset-btn {
-    padding: 6px 14px;
-    background: var(--surface-2);
+    padding: 5px 12px;
+    background: var(--surface-subtle);
     color: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-full);
-    font-size: 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 500;
     transition: all var(--transition-fast);
   }
@@ -470,9 +481,10 @@
   }
 
   .footer {
-    border-top: 1px solid var(--line-subtle);
-    padding: 24px 0;
-    font-size: 12px;
+    border-top: 1px solid var(--line);
+    padding: 20px 0;
+    font-family: var(--mono);
+    font-size: 11px;
     color: var(--muted);
     background: var(--surface);
   }

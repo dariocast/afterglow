@@ -170,10 +170,10 @@ export const replies = sqliteTable('replies', {
   - Detection of `standalone` display mode (`window.matchMedia('(display-mode: standalone)').matches`).
   - Detection of iOS Safari (`/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream`).
   - Educational drawer/modal with carousel highlighting key advantages:
-    - ⚡ *Zero latenza all'avvio*
-    - 🔒 *Privacy totale & zero tracciamento*
-    - 📱 *Esperienza a schermo intero senza barre del browser*
-    - 💾 *Zero megabyte scaricati da app store*
+    - *Zero latenza all'avvio*
+    - *Privacy totale & zero tracciamento*
+    - *Esperienza a schermo intero senza barre del browser*
+    - *Zero megabyte scaricati da app store*
 
 ### 4.7 Repository & Test Strategy (Builder Call)
 - The project structure will modernize the repository:

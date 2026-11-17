@@ -17,8 +17,8 @@
     "social",
     "lifestyle"
   ],
-  "theme_color": "#111110",
-  "background_color": "#fdfcf9",
+  "theme_color": "#0a0b0e",
+  "background_color": "#0a0b0e",
   "icons": [
     {
       "src": "/icons/icon-192.png",

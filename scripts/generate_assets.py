@@ -54,7 +54,7 @@ class Canvas:
 
     def draw_star(self, cx, cy, size, color):
         r, g, b = color
-        # 4-point star / diamond sparkle (✦)
+        # 4-point star / diamond sparkle geometric shape
         for y in range(max(0, cy - size), min(self.height, cy + size + 1)):
             dy = abs(y - cy) / size
             if dy > 1.0:

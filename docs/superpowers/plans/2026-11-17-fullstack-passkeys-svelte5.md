@@ -400,7 +400,7 @@ Configure `manifest.webmanifest` per Supercell Store Pattern standard.
 Implement `PwaInstallModal.svelte` with:
 - Carousel of preview screenshots with dots navigation.
 - Value props (Zero latency, Privacy, Fullscreen, Zero app store download).
-- Platform detector: Android/Chrome invokes `deferredPrompt.prompt()`; iOS Safari displays step-by-step visual guidance (*Condividi ➔ Aggiungi alla schermata Home*).
+- Platform detector: Android/Chrome invokes `deferredPrompt.prompt()`; iOS Safari displays step-by-step visual guidance (*Condividi -> Aggiungi alla schermata Home*).
 - Standalone check to hide button if already running in standalone mode.
 - Dismissal preference stored in `localStorage`.
 

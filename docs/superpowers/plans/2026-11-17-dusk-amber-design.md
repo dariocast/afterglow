@@ -40,7 +40,7 @@
   - Light mode variables (`--bg: #f5f6f8`, `--surface: #ffffff`, `--surface-subtle: #eceef2`, `--line: rgba(0, 0, 0, 0.08)`, `--ink: #0f1218`, `--amber: #d97706`).
   - Radii: `--radius-xs: 2px`, `--radius-sm: 4px`, `--radius-md: 6px`. Remove `--radius-full`.
   - Typography: Sans (`Inter`, system-ui) and Tabular Mono.
-- [ ] Clean up `index.html`: replace `✦` in `<noscript>` with SVG or clean text; verify `Good things<br /><em>can end.</em>` is intact for static contract.
+- [ ] Clean up `index.html`: replace star mark in `<noscript>` with SVG or clean text; verify `Good things<br /><em>can end.</em>` is intact for static contract.
 - [ ] Run `python3 test_static.py` and confirm `static contract: PASS`.
 - [ ] Commit: `git commit -m "style: replace tokens with dusk amber system and clean index.html"`
 
