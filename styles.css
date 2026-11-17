@@ -11,7 +11,7 @@ button { cursor:pointer; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 .topbar { height:68px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; padding:0 max(22px, calc((100vw - 1120px) / 2)); }
 .brand { color:var(--ink); text-decoration:none; font-weight:700; letter-spacing:-.03em; font-size:20px; }
-.brand-mark { color:var(--accent); margin-right:5px; }
+.brand-mark { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-right:6px; vertical-align:middle; }
 .top-actions { display:flex; align-items:center; gap:16px; }
 .icon-button { background:none; color:var(--muted); border:0; font-size:21px; padding:6px; }
 .avatar { width:42px; height:42px; flex:0 0 42px; border-radius:50%; background:var(--ink); color:var(--bg); display:grid; place-items:center; font-size:11px; font-weight:800; letter-spacing:.05em; }
