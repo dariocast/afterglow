@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node --import tsx/esm server/index.ts",
+    "db:seed": "node --import tsx/esm server/db/seed.ts",
     "test": "vitest run",
     "check": "tsc --noEmit"
   },

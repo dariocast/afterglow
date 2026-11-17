@@ -11,3 +11,7 @@ coverage/
 __pycache__/
 .vscode/
 .idea/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
