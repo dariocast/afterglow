@@ -1,0 +1,192 @@
+# Design Document: Afterglow Full-Stack Evolution with Passkeys & Svelte 5
+
+**Date:** 2026-11-17  
+**Status:** Ready for Approval  
+**Topic:** Transition from local-first prototype to full-stack reactive application with WebAuthn Passkeys, Drizzle ORM, SQLite/Postgres portability, and PWA installation experience standard.
+
+---
+
+## 1. Intent & The Why
+
+Afterglow is a finite social space whose core thesis is **social interaction without an accumulating archive**. Most social networks optimize for retention via endless backlogs, permanent profiles, and vanity engagement metrics. Afterglow optimizes for **closure and presence**: moments are visible for a finite window (24 hours, 3 days, 7 days), and expire naturally.
+
+The goal of this evolution is to graduate Afterglow from a single-browser `localStorage` prototype into a real multi-user, lightweight, reactive web application with:
+- **Zero-friction, passwordless authentication** via native WebAuthn Passkeys (biometrics / security keys) that respect user privacy.
+- **Robust, portable persistence** using Drizzle ORM over SQLite today, completely decoupled so switching to PostgreSQL requires zero architectural refactoring.
+- **Ultra-fast, reactive frontend** using Vite and Svelte 5 with fine-grained reactivity, minimal bundle weight, and elevated UX/UI using the `ui-ux-pro-max` design system.
+- **Full PWA Experience** satisfying the Supercell Store Pattern standard (Chromium rich install prompt + custom in-app educational modal with OS detection).
+
+---
+
+## 2. Goals, Non-Goals & Anti-Goals
+
+### Goals
+- **Passkey-First Authentication**: Users register with a chosen username/display name and authenticate via WebAuthn Passkeys (Touch ID, Face ID, Windows Hello, YubiKey) without passwords.
+- **Drizzle ORM + SQLite**: Type-safe schema for Users, Passkey Credentials, Posts, Reactions, and Replies. Clear migration path to Postgres via environment dialect configuration.
+- **Dual Expiry Execution**: Expired posts are filtered out on query (`WHERE expires_at > ?`) and actively pruned via periodic in-process cleanup to strictly prevent database accumulation.
+- **Svelte 5 Reactive Frontend**: Instant UI updates, real-time glowing countdowns indicating remaining post lifespan, and responsive feed filters ("All", "Ending soon", "Mine").
+- **PWA Installation Standard**:
+  - Web App Manifest configured for Chromium Richer Install UI (wide and narrow screenshots, categories, shortcuts, maskable icons).
+  - In-app interactive install modal with screenshots, OS detection (Android/Chrome direct prompt vs. iOS Safari step-by-step visual guide), standalone mode detection, and dismissal persistence.
+- **Accessible & Calm Aesthetics**: High contrast, keyboard navigability, reduced motion respect, and typography-focused UI inspired by warm minimalism and editorial typography.
+
+### Non-Goals
+- Complex friendship graphs, follower counts, or algorithmic engagement recommendation engines.
+- Long-term permanent content archival or public profile backlogs.
+- Full server-side rendering (SSR) cluster orchestration; a lightweight single-node Node.js service is optimal.
+- Complex multi-device credential management beyond standard platform passkey synchronization (iCloud Keychain / Google Password Manager).
+
+### Anti-Goals (What would make this a failure)
+- Adding addictive mechanics (endless scroll, unread badges, streaks).
+- Requiring heavy traditional passwords or invasive tracking cookies.
+- Creating lock-in to proprietary cloud databases or heavy application frameworks.
+- Storing stale posts indefinitely on client offline caches that contradict the finite lifespan promise.
+
+---
+
+## 3. Approaches Considered
+
+### Approach A: Hono (Node.js) + TypeScript + Drizzle ORM + Vite & Svelte 5 (*Selected*)
+- **Backend**: Hono running on Node.js. Lightweight REST API + WebAuthn challenge handling via `@simplewebauthn/server`.
+- **Database**: Drizzle ORM using `better-sqlite3`, designed with standard SQL dialect abstractions so switching to PostgreSQL is a one-file driver swap.
+- **Frontend**: Vite + Svelte 5. Fine-grained signals (`$state`, `$derived`), zero VDOM overhead, instant rendering of countdowns, small footprint.
+- **Decision**: Chosen by user for maximum reactivity, TypeScript cohesion, and flexibility.
+
+### Approach B: Python (FastAPI) + SQLite + WebAuthn
+- **Trade-offs**: Dual-language stack (Python backend, JS/TS frontend), heavier deployment overhead (venv, pip). Rejected in favor of unified TypeScript.
+
+### Approach C: PocketBase / BaaS
+- **Trade-offs**: External binary, rigid auth mechanisms without direct Passkey-first elegance. Rejected to avoid lock-in.
+
+---
+
+## 4. Architecture & Technical Specifications
+
+### 4.1 Deployment Topology & Origin Architecture (Builder Call)
+- **Monolithic Single-Origin**:
+  - In production, Hono acts as the unified server: it mounts `/api/*` and serves the static production assets generated by Vite from the dist directory.
+  - In development, Vite runs the dev server and proxies `/api` calls to Hono.
+  - This ensures WebAuthn `rpID` / origin checks and `SameSite` HTTP-only session cookies have zero CORS friction and work consistently across local and deployed environments.
+
+### 4.2 Backend Architecture (Hono + TypeScript)
+- **Directory**: `server/`
+- **Endpoints**:
+  - `POST /api/auth/register-options`: Generates registration challenge for username/display name.
+  - `POST /api/auth/register-verify`: Verifies WebAuthn response, creates user & credential record, sets session cookie.
+  - `POST /api/auth/login-options`: Generates login challenge.
+  - `POST /api/auth/login-verify`: Verifies authentication response, sets session cookie.
+  - `GET /api/auth/me`: Returns active session user or 401.
+  - `POST /api/auth/logout`: Clears session cookie.
+  - `GET /api/posts?filter=[all|ending|mine]`: Non-expired posts with author & reaction tallies.
+  - `POST /api/posts`: Create post with lifespan (24h, 72h, 168h).
+  - `DELETE /api/posts/:id`: Author can delete their own post early.
+  - `POST /api/posts/:id/reactions`: Toggle or replace reaction (`glow`, `warm`, `thought`). Single reaction per user per post.
+  - `POST /api/posts/:id/replies`: Finite replies.
+  - `GET /api/health`: Health status.
+- **Expiry Worker**: Periodic in-process task running every 15 minutes that executes:
+  `DELETE FROM posts WHERE expires_at <= unixepoch()` (with cascade delete for replies and reactions).
+
+### 4.3 Database Schema (Drizzle ORM)
+```typescript
+import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
+
+// Users
+export const users = sqliteTable('users', {
+  id: text('id').primaryKey(),
+  username: text('username').notNull().unique(),
+  displayName: text('display_name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
+// Passkey Credentials
+export const credentials = sqliteTable('credentials', {
+  id: text('id').primaryKey(), // base64url credentialId
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  publicKey: text('public_key').notNull(),
+  counter: integer('counter').notNull(),
+  transports: text('transports'), // JSON array of transports
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+
+// Posts
+export const posts = sqliteTable('posts', {
+  id: text('id').primaryKey(),
+  authorId: text('author_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  lifetimeHours: integer('lifetime_hours').notNull(), // 24, 72, 168
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+});
+
+// Reactions (Unique per user and post)
+export const reactions = sqliteTable('reactions', {
+  id: text('id').primaryKey(),
+  postId: text('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  kind: text('kind').notNull(), // 'glow' | 'warm' | 'thought'
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+}, (table) => [
+  uniqueIndex('user_post_reaction_idx').on(table.userId, table.postId),
+]);
+
+// Replies
+export const replies = sqliteTable('replies', {
+  id: text('id').primaryKey(),
+  postId: text('post_id').notNull().references(() => posts.id, { onDelete: 'cascade' }),
+  authorId: text('author_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  content: text('content').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+});
+```
+
+### 4.4 Database Portability Strategy (No SQLite Lock-in)
+- Use standard SQL types mapped via Drizzle ORM primitives (`sqliteTable` -> `pgTable` transition).
+- Migrations managed via `drizzle-kit`.
+- Database client encapsulated in `server/db/index.ts`. Switching to Postgres in the future requires only replacing the driver connector with `drizzle-orm/node-postgres` and updating connection credentials in `.env`.
+
+### 4.5 Frontend Architecture (Vite + Svelte 5 + PWA)
+- **Directory**: `src/`
+- **Components**:
+  - `Topbar.svelte`: Brand mark, theme switcher (light/dark), user avatar/login trigger, install PWA prompt.
+  - `HeroSection.svelte`: Finite social network statement & promise card.
+  - `Composer.svelte`: Lightweight textarea (max 420 chars), lifespan selector (24h, 3d, 7d), animated submit action.
+  - `FeedFilters.svelte`: Tabs for All, Ending Soon, Yours.
+  - `PostCard.svelte`: Post text, author, real-time glowing countdown indicator, reaction bar, expandable replies, author delete action.
+  - `PasskeyAuthModal.svelte`: Modal for registering/logging in with Passkey (WebAuthn).
+  - `PwaInstallModal.svelte`: Interactive modal with feature highlights, screenshot carousel, and OS-specific install instructions (Android prompt / iOS Safari share-to-home visual guide).
+- **Offline / PWA Scope (Builder Call)**:
+  - PWA app shell and static assets are cached via Service Worker for instant offline loading and zero latency.
+  - Live feed data is fetched online-first. If offline, the UI shows a clean status indicator without creating a permanent stale cache that violates the finite-life principle.
+
+### 4.6 PWA Standard Implementation (Supercell Store Pattern)
+- **Chromium Richer UI Configuration (`manifest.webmanifest`)**:
+  - Description: "Afterglow is a quiet, finite social network where conversations have a natural ending. No backlog, no infinite feed."
+  - Screenshots array: 3 mobile screenshots (`1080x2340`, `narrow`), 1 desktop screenshot (`1920x1080`, `wide`).
+  - Icons: 192x192 and 512x512 (`any` and `maskable`).
+  - `display_override`: `["window-controls-overlay", "standalone", "minimal-ui"]`.
+  - Categories: `["social", "lifestyle"]`.
+- **In-App PWA Install Experience**:
+  - Listens to `beforeinstallprompt` and retains `deferredPrompt`.
+  - Detection of `standalone` display mode (`window.matchMedia('(display-mode: standalone)').matches`).
+  - Detection of iOS Safari (`/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream`).
+  - Educational drawer/modal with carousel highlighting key advantages:
+    - ⚡ *Zero latenza all'avvio*
+    - 🔒 *Privacy totale & zero tracciamento*
+    - 📱 *Esperienza a schermo intero senza barre del browser*
+    - 💾 *Zero megabyte scaricati da app store*
+
+### 4.7 Repository & Test Strategy (Builder Call)
+- The project structure will modernize the repository:
+  - `server/`: Backend Hono + Drizzle + WebAuthn
+  - `src/`: Svelte 5 Frontend
+  - Root `package.json`, `vite.config.ts`, `drizzle.config.ts`
+  - Automated tests: Vitest for server API contracts and auth flows, replacing/updating legacy static checks.
+  - A database seed script will provide initial active moments with staggered expirations.
+
+---
+
+## 5. What is Left to the Builder
+
+- Selection of specific npm utility libraries (e.g. `@simplewebauthn/server` and `@simplewebauthn/browser`).
+- Precise SVG rendering for reactions, avatar placeholders, and PWA screenshot mockups.
+- Development script orchestration (`npm run dev` running both Hono and Vite seamlessly).
