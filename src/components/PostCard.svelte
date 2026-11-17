@@ -68,11 +68,12 @@
     const hours = remainingMs / (3600 * 1000);
     if (hours < 1) return 'ending soon';
     if (hours < 24) return `${Math.ceil(hours)}h left`;
-    return `${Math.ceil(hours / 24)}d left`;
+    const days = Math.ceil(hours / 24);
+    return `${days}d left`;
   });
 
   const initials = $derived.by(() => {
-    const name = post.author?.displayName || post.author?.username || '?';
+    const name = post.author?.displayName || post.author?.username || 'Anon';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -81,8 +82,8 @@
   });
 
   function handleReactionClick(kind: ReactionKind) {
-    if (!currentUserId) {
-      onRequestAuth?.();
+    if (!currentUserId && onRequestAuth) {
+      onRequestAuth();
       return;
     }
     onReact?.(kind);
@@ -90,8 +91,8 @@
 
   async function handleReplySubmit(event: SubmitEvent) {
     event.preventDefault();
-    if (!currentUserId) {
-      onRequestAuth?.();
+    if (!currentUserId && onRequestAuth) {
+      onRequestAuth();
       return;
     }
     const trimmed = replyText.trim();
@@ -130,7 +131,7 @@
   class:expired={isExpired}
   data-id={post.id}
 >
-  <!-- Lifespan subtle progress bar -->
+  <!-- Lifespan hairline progress bar -->
   <div
     class="lifespan-track"
     role="progressbar"
@@ -174,7 +175,7 @@
         class:urgent={isEndingSoon}
         title={new Date(post.expiresAt).toLocaleString()}
       >
-        <Icon name="clock" size={12} />
+        <Icon name="clock" size={11} />
         <span>{expiryLabel}</span>
       </div>
     </div>
@@ -246,9 +247,9 @@
         title="Copy moment quote"
       >
         {#if copyFeedback}
-          <Icon name="check" size={14} />
+          <Icon name="check" size={13} />
         {:else}
-          <Icon name="share" size={14} />
+          <Icon name="share" size={13} />
         {/if}
       </button>
     </div>
@@ -300,8 +301,8 @@
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    padding: 24px 26px 20px;
-    margin-bottom: 24px;
+    padding: 20px 22px 18px;
+    margin-bottom: 20px;
     box-shadow: var(--shadow-xs);
     position: relative;
     overflow: hidden;
@@ -309,17 +310,17 @@
   }
 
   .post-card:hover {
-    border-color: var(--line-strong);
+    border-color: var(--line-focus);
     box-shadow: var(--shadow-sm);
   }
 
   .post-card.ending-soon {
-    border-color: rgba(var(--accent-rgb), 0.35);
-    background: linear-gradient(to bottom, var(--accent-tint), transparent 48px), var(--surface);
+    border-color: var(--amber);
+    box-shadow: var(--amber-glow);
   }
 
   .post-card.expired {
-    opacity: 0.5;
+    opacity: 0.4;
     pointer-events: none;
   }
 
@@ -339,34 +340,35 @@
   }
 
   .lifespan-fill.urgent {
-    background: var(--accent);
+    background: var(--amber);
   }
 
   .post-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .author-block {
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 10px;
   }
 
   .avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: var(--radius-full);
-    background: var(--surface-2);
-    color: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    color: var(--amber);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 600;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-strong);
   }
 
   .author-info {
@@ -375,14 +377,15 @@
   }
 
   .author-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--ink);
     line-height: 1.2;
   }
 
   .author-handle {
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
     color: var(--muted);
   }
 
@@ -396,9 +399,9 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
-    padding: 3px 8px;
+    padding: 3px 6px;
     border-radius: var(--radius-xs);
     transition: all var(--transition-fast);
   }
@@ -412,72 +415,73 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    font-family: var(--mono);
     font-size: 11px;
     font-weight: 500;
     color: var(--muted);
-    background: var(--surface-2);
-    padding: 4px 9px;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--line-subtle);
+    background: var(--surface-subtle);
+    padding: 3px 7px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--line);
     font-variant-numeric: tabular-nums;
   }
 
   .expiry-pill.urgent {
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-color: rgba(var(--accent-rgb), 0.3);
+    color: var(--amber);
+    background: var(--amber-subtle);
+    border-color: var(--amber);
     font-weight: 600;
   }
 
   .post-content {
-    font-family: var(--serif);
-    font-size: 18px;
-    line-height: 1.6;
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
     color: var(--ink);
-    margin: 0 0 20px;
+    margin: 0 0 16px;
     word-break: break-word;
-    letter-spacing: -0.01em;
   }
 
   .post-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 14px;
+    padding-top: 12px;
     border-top: 1px solid var(--line-subtle);
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
   }
 
   .reactions-group {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
   }
 
   .reaction-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 11px;
-    border-radius: var(--radius-full);
-    font-size: 12px;
+    gap: 5px;
+    padding: 4px 8px;
+    border-radius: var(--radius-xs);
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 500;
     color: var(--muted);
-    background: var(--surface-2);
-    border: 1px solid var(--line-subtle);
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
     transition: all var(--transition-fast);
   }
 
   .reaction-btn:hover {
     color: var(--ink);
-    border-color: var(--line);
+    border-color: var(--line-strong);
   }
 
   .reaction-btn.active {
-    color: var(--accent);
-    background: var(--accent-soft);
-    border-color: rgba(var(--accent-rgb), 0.35);
+    color: var(--amber);
+    background: var(--amber-subtle);
+    border-color: var(--amber);
   }
 
   .reaction-count {
@@ -492,58 +496,65 @@
   }
 
   .utility-btn {
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
     color: var(--muted);
-    padding: 5px 9px;
+    padding: 4px 8px;
     border-radius: var(--radius-xs);
-    transition: color var(--transition-fast);
+    border: 1px solid transparent;
+    transition: all var(--transition-fast);
   }
 
   .utility-btn:hover {
     color: var(--ink);
+    border-color: var(--line);
   }
 
   .utility-btn.icon-only {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     padding: 0;
   }
 
   .replies-section {
-    margin-top: 18px;
-    padding-top: 16px;
+    margin-top: 14px;
+    padding-top: 14px;
     border-top: 1px dashed var(--line);
   }
 
   .replies-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin-bottom: 12px;
   }
 
   .reply-card {
-    background: var(--surface-2);
-    padding: 10px 14px;
-    border-radius: var(--radius-sm);
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    border-radius: var(--radius-xs);
     font-size: 13px;
   }
 
   .reply-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 4px;
-    font-size: 12px;
+    margin-bottom: 3px;
+    font-size: 11px;
   }
 
   .reply-header strong {
+    font-family: var(--mono);
     color: var(--ink);
+    font-weight: 500;
   }
 
   .reply-time {
+    font-family: var(--mono);
     color: var(--muted);
   }
 
@@ -554,40 +565,47 @@
   }
 
   .no-replies {
-    font-size: 13px;
+    font-family: var(--mono);
+    font-size: 11px;
     color: var(--muted);
-    font-style: italic;
-    margin: 0 0 14px;
+    margin: 0 0 12px;
   }
 
   .reply-form {
     display: flex;
-    gap: 8px;
+    gap: 6px;
   }
 
   .reply-form input {
     flex: 1;
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 6px 10px;
+    font-size: 12px;
     background: var(--bg);
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xs);
     color: var(--ink);
   }
 
   .reply-form input:focus {
     outline: none;
-    border-color: var(--accent);
+    border-color: var(--amber);
   }
 
   .reply-submit-btn {
-    padding: 8px 14px;
-    background: var(--ink);
-    color: var(--bg);
-    border-radius: var(--radius-sm);
-    font-size: 12px;
+    padding: 6px 12px;
+    background: var(--surface-subtle);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    font-family: var(--mono);
+    font-size: 11px;
     font-weight: 500;
-    transition: opacity var(--transition-fast);
+    transition: all var(--transition-fast);
+  }
+
+  .reply-submit-btn:hover:not(:disabled) {
+    background: var(--surface-hover);
+    border-color: var(--ink);
   }
 
   .reply-submit-btn:disabled {
