@@ -1,12 +1,18 @@
 <script lang="ts">
-  import { api, type UserProfile } from '../lib/api';
+  import { api, type UserProfile, type ReactionKind } from '../lib/api';
   import { authStore } from '../lib/auth.svelte';
+  import {
+    handleMomentDelete,
+    handleMomentReact,
+    handleMomentReply,
+  } from '../lib/profile-actions';
   import Icon from './icons/Icon.svelte';
   import PostCard from './PostCard.svelte';
 
   interface Props {
     username: string;
     initialProfile?: UserProfile | null;
+    initialEditingBio?: boolean;
     currentUserId?: string | null;
     onClose: () => void;
     onPostUpdated?: () => void;
@@ -16,6 +22,7 @@
   let {
     username,
     initialProfile = null,
+    initialEditingBio = false,
     currentUserId = undefined,
     onClose,
     onPostUpdated,
@@ -29,10 +36,14 @@
   let loadError = $state<string | null>(null);
 
   // Bio editing state
-  let isEditingBio = $state(false);
-  let bioDraft = $state('');
+  // svelte-ignore state_referenced_locally
+  let isEditingBio = $state(initialEditingBio);
+  // svelte-ignore state_referenced_locally
+  let bioDraft = $state(initialProfile?.bio || '');
   let isSavingBio = $state(false);
   let bioError = $state<string | null>(null);
+
+  let momentActionError = $state<string | null>(null);
 
   // Follow action state
   let isTogglingFollow = $state(false);
@@ -170,6 +181,48 @@
       isTogglingFollow = false;
     }
   }
+
+  async function onDeleteMoment(momentId: string) {
+    momentActionError = null;
+    try {
+      await handleMomentDelete(momentId, profile, onPostUpdated);
+    } catch (err: any) {
+      momentActionError = err?.message || 'Failed to delete moment';
+    }
+  }
+
+  async function onReactMoment(momentId: string, kind: ReactionKind) {
+    momentActionError = null;
+    try {
+      await handleMomentReact(
+        momentId,
+        kind,
+        profile,
+        effectiveCurrentUserId,
+        onRequestAuth,
+        onPostUpdated
+      );
+    } catch (err: any) {
+      momentActionError = err?.message || 'Failed to react';
+    }
+  }
+
+  async function onReplyMoment(momentId: string, content: string) {
+    momentActionError = null;
+    try {
+      await handleMomentReply(
+        momentId,
+        content,
+        profile,
+        effectiveCurrentUserId,
+        onRequestAuth,
+        onPostUpdated
+      );
+    } catch (err: any) {
+      momentActionError = err?.message || 'Failed to submit reply';
+      throw err;
+    }
+  }
 </script>
 
 <div class="drawer-backdrop" onclick={onClose} role="presentation"></div>
@@ -247,12 +300,12 @@
                   class="bio-textarea"
                   bind:value={bioDraft}
                   placeholder="Share a quiet thought about yourself..."
-                  maxlength={200}
+                  maxlength={160}
                   rows={3}
                   aria-label="Edit your bio"
                 ></textarea>
                 <div class="bio-editor-footer">
-                  <span class="bio-char-count">{bioDraft.length}/200</span>
+                  <span class="bio-char-count">{bioDraft.length}/160</span>
                   <div class="bio-editor-actions">
                     <button
                       class="bio-cancel-btn"
@@ -308,6 +361,10 @@
           <span class="moments-note">Visible until their finite time dissolves</span>
         </div>
 
+        {#if momentActionError}
+          <p class="moment-action-error" role="alert">{momentActionError}</p>
+        {/if}
+
         {#if !profile.activeMoments || profile.activeMoments.length === 0}
           <div class="empty-moments">
             <p>No active moments. Thoughts will appear here while they live.</p>
@@ -319,12 +376,9 @@
                 post={moment}
                 currentUserId={effectiveCurrentUserId}
                 onRequestAuth={onRequestAuth}
-                ondelete={async () => {
-                  if (profile) {
-                    profile.activeMoments = profile.activeMoments.filter((m) => m.id !== moment.id);
-                  }
-                  onPostUpdated?.();
-                }}
+                onReact={(kind) => onReactMoment(moment.id, kind)}
+                onReply={(content) => onReplyMoment(moment.id, content)}
+                ondelete={() => onDeleteMoment(moment.id)}
               />
             {/each}
           </div>
@@ -657,6 +711,12 @@
     font-size: 11px;
     color: var(--muted);
     font-style: italic;
+  }
+
+  .moment-action-error {
+    margin: 4px 0 8px;
+    font-size: 12px;
+    color: var(--danger);
   }
 
   .empty-moments {

@@ -1,12 +1,19 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render } from 'svelte/server';
+import fs from 'node:fs';
+import path from 'node:path';
 import PostCard from '../src/components/PostCard.svelte';
 import Composer from '../src/components/Composer.svelte';
 import FeedFilters from '../src/components/FeedFilters.svelte';
 import Topbar from '../src/components/Topbar.svelte';
 import PasskeyAuthModal from '../src/components/PasskeyAuthModal.svelte';
 import ProfileDrawer from '../src/components/ProfileDrawer.svelte';
-import type { UserProfile } from '../src/lib/api';
+import {
+  handleMomentDelete,
+  handleMomentReact,
+  handleMomentReply,
+} from '../src/lib/profile-actions';
+import { api, type UserProfile } from '../src/lib/api';
 
 describe('UI & Svelte 5 Components', () => {
   const samplePost = {
@@ -293,6 +300,123 @@ describe('UI & Svelte 5 Components', () => {
       // Shows edit bio capability
       expect(html).toContain('edit-bio');
     });
+
+    it('enforces 160 character limit in bio editor', () => {
+      const { html } = render(ProfileDrawer, {
+        props: {
+          username: 'elena_v',
+          initialProfile: mockProfile,
+          initialEditingBio: true,
+          currentUserId: 'usr_elena',
+          onClose: () => {},
+        },
+      });
+
+      expect(html).toContain('maxlength="160"');
+      expect(html).toContain('/160');
+    });
+
+    it('wires moment deletion via api.deletePost and updates activeMoments', async () => {
+      const deleteSpy = vi.spyOn(api, 'deletePost').mockResolvedValue({ success: true });
+      const onPostUpdated = vi.fn();
+
+      const profileCopy: UserProfile = {
+        ...mockProfile,
+        activeMoments: [...mockProfile.activeMoments],
+      };
+
+      await handleMomentDelete('post-elena-1', profileCopy, onPostUpdated);
+
+      expect(deleteSpy).toHaveBeenCalledWith('post-elena-1');
+      expect(profileCopy.activeMoments).toHaveLength(0);
+      expect(onPostUpdated).toHaveBeenCalledTimes(1);
+      deleteSpy.mockRestore();
+    });
+
+    it('wires moment reaction via api.reactToPost and updates activeMoments', async () => {
+      const reactSpy = vi.spyOn(api, 'reactToPost').mockResolvedValue({
+        success: true,
+        reaction: { id: 'rxn-1', kind: 'warm' },
+        reactions: { glow: 3, warm: 2, thought: 0 },
+        userReaction: 'warm',
+      });
+      const onPostUpdated = vi.fn();
+      const onRequestAuth = vi.fn();
+
+      const profileCopy: UserProfile = {
+        ...mockProfile,
+        activeMoments: [{ ...mockProfile.activeMoments[0] }],
+      };
+
+      // Unauthenticated call prompts auth
+      await handleMomentReact('post-elena-1', 'warm', profileCopy, null, onRequestAuth, onPostUpdated);
+      expect(onRequestAuth).toHaveBeenCalledTimes(1);
+      expect(reactSpy).not.toHaveBeenCalled();
+
+      // Authenticated call
+      await handleMomentReact(
+        'post-elena-1',
+        'warm',
+        profileCopy,
+        'usr_viewer',
+        onRequestAuth,
+        onPostUpdated
+      );
+      expect(reactSpy).toHaveBeenCalledWith('post-elena-1', 'warm');
+      expect(profileCopy.activeMoments[0].reactions.warm).toBe(2);
+      expect(profileCopy.activeMoments[0].userReaction).toBe('warm');
+      expect(onPostUpdated).toHaveBeenCalledTimes(1);
+      reactSpy.mockRestore();
+    });
+
+    it('wires moment reply via api.addReply and appends to activeMoments', async () => {
+      const replySpy = vi.spyOn(api, 'addReply').mockResolvedValue({
+        id: 'reply-new',
+        postId: 'post-elena-1',
+        authorId: 'usr_viewer',
+        content: 'Remarkable reflection.',
+        createdAt: new Date().toISOString(),
+        author: {
+          id: 'usr_viewer',
+          username: 'viewer',
+          displayName: 'Viewer One',
+        },
+      });
+      const onPostUpdated = vi.fn();
+      const onRequestAuth = vi.fn();
+
+      const profileCopy: UserProfile = {
+        ...mockProfile,
+        activeMoments: [{ ...mockProfile.activeMoments[0], replies: [] }],
+      };
+
+      // Unauthenticated call prompts auth
+      await handleMomentReply(
+        'post-elena-1',
+        'Remarkable reflection.',
+        profileCopy,
+        null,
+        onRequestAuth,
+        onPostUpdated
+      );
+      expect(onRequestAuth).toHaveBeenCalledTimes(1);
+      expect(replySpy).not.toHaveBeenCalled();
+
+      // Authenticated call
+      await handleMomentReply(
+        'post-elena-1',
+        'Remarkable reflection.',
+        profileCopy,
+        'usr_viewer',
+        onRequestAuth,
+        onPostUpdated
+      );
+      expect(replySpy).toHaveBeenCalledWith('post-elena-1', 'Remarkable reflection.');
+      expect(profileCopy.activeMoments[0].replies).toHaveLength(1);
+      expect(profileCopy.activeMoments[0].replies[0].content).toBe('Remarkable reflection.');
+      expect(onPostUpdated).toHaveBeenCalledTimes(1);
+      replySpy.mockRestore();
+    });
   });
 
   describe('PasskeyAuthModal.svelte', () => {
@@ -334,6 +458,26 @@ describe('UI & Svelte 5 Components', () => {
 
       expect(html).not.toContain('modal-backdrop');
       expect(html).not.toContain('auth-modal-title');
+    });
+
+    it('ensures PasskeyAuthModal has higher z-index than ProfileDrawer so it stacks cleanly above it', () => {
+      const passkeySrc = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/components/PasskeyAuthModal.svelte'),
+        'utf-8'
+      );
+      const drawerSrc = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/components/ProfileDrawer.svelte'),
+        'utf-8'
+      );
+
+      const passkeyBackdropZ = Number(passkeySrc.match(/\.modal-backdrop\s*\{[^}]*z-index:\s*(\d+)/)?.[1]);
+      const passkeyCardZ = Number(passkeySrc.match(/\.modal-card\s*\{[^}]*z-index:\s*(\d+)/)?.[1]);
+      const drawerBackdropZ = Number(drawerSrc.match(/\.drawer-backdrop\s*\{[^}]*z-index:\s*(\d+)/)?.[1]);
+      const drawerPanelZ = Number(drawerSrc.match(/\.profile-drawer-panel\s*\{[^}]*z-index:\s*(\d+)/)?.[1]);
+
+      expect(passkeyBackdropZ).toBeGreaterThan(drawerPanelZ);
+      expect(passkeyBackdropZ).toBeGreaterThan(drawerBackdropZ);
+      expect(passkeyCardZ).toBeGreaterThan(passkeyBackdropZ);
     });
   });
 });

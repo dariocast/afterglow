@@ -192,7 +192,7 @@
   .modal-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 1100;
     background: rgba(10, 11, 14, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -212,6 +212,7 @@
     max-width: 420px;
     padding: 28px;
     position: relative;
+    z-index: 1101;
     animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
