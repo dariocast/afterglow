@@ -1,108 +1,98 @@
-/* Afterglow Design Tokens - Dusk Amber / Twilight Minimal System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Afterglow Design Tokens - Moleskine Dot-Grid & Printed Editorial System */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Surface & Base (Default Light Mode - Crisp Dusk Horizon) */
-  --bg: #f5f6f8;
+  /* Moleskine Warm Ivory Paper */
+  --bg: #fbf9f5;
+  --dot-color: rgba(0, 0, 0, 0.075);
   --surface: #ffffff;
-  --surface-subtle: #eceef2;
-  --surface-hover: #e4e6ec;
+  --surface-subtle: #f4f1eb;
+  --surface-hover: #ece8df;
   --surface-elevated: #ffffff;
-  
-  --ink: #0f1218;
-  --ink-secondary: #4b5563;
-  --muted: #4b5563;
-  --muted-light: #808a9d;
-  
+
+  --ink: #1c1d1f;
+  --ink-secondary: #5a5c61;
+  --muted: #6b6d74;
+  --muted-light: #94969e;
+
   --line: rgba(0, 0, 0, 0.08);
   --line-subtle: rgba(0, 0, 0, 0.04);
-  --line-focus: rgba(0, 0, 0, 0.22);
-  --line-strong: rgba(0, 0, 0, 0.14);
+  --line-strong: rgba(0, 0, 0, 0.16);
+  --line-focus: rgba(0, 0, 0, 0.28);
 
-  /* Accent - Dusk Amber / Warm Ember */
-  --accent: #d97706;
-  --accent-hover: #b45309;
-  --accent-soft: rgba(217, 119, 6, 0.10);
-  --accent-tint: rgba(217, 119, 6, 0.06);
-  --accent-glow: 0 0 14px rgba(217, 119, 6, 0.16);
-  --accent-rgb: 217, 119, 6;
-  
-  --amber: #d97706;
-  --amber-subtle: rgba(217, 119, 6, 0.10);
-  --amber-glow: 0 0 14px rgba(217, 119, 6, 0.16);
+  /* Warm Ink / Graphite Accent */
+  --accent: #2c2d30;
+  --accent-hover: #000000;
+  --accent-soft: rgba(0, 0, 0, 0.05);
+  --accent-tint: rgba(0, 0, 0, 0.03);
+  --accent-rgb: 44, 45, 48;
+  --accent-glow: 0 0 12px rgba(0, 0, 0, 0.08);
 
-  --danger: #dc2626;
-  --danger-soft: rgba(220, 38, 38, 0.10);
-  --success: #059669;
-  --success-soft: rgba(5, 150, 105, 0.10);
+  --danger: #c93b32;
+  --danger-soft: rgba(201, 59, 50, 0.08);
+  --success: #2d7a4d;
+  --success-soft: rgba(45, 122, 77, 0.08);
 
-  /* Elevation & Shadows - Subtle Architectural */
-  --shadow-xs: 0 1px 2px rgba(15, 18, 24, 0.04);
-  --shadow-sm: 0 2px 6px -1px rgba(15, 18, 24, 0.06);
-  --shadow-md: 0 8px 20px -4px rgba(15, 18, 24, 0.08);
-  --shadow-lg: 0 16px 36px -6px rgba(15, 18, 24, 0.10);
-  --glow-shadow: 0 0 16px rgba(217, 119, 6, 0.14);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 16px 36px -6px rgba(0, 0, 0, 0.12);
 
   /* Typography */
+  --serif: 'Newsreader', Georgia, 'Times New Roman', serif;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-  --serif: var(--sans); /* Deprecated: all typography standardizes on geometric sans */
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
 
-  /* Layout & Spacing */
-  --shell-max: 1040px;
+  /* Layout - Single Column Moleskine Journal Width */
+  --shell-max: 620px;
   --shell-padding: max(20px, calc((100vw - var(--shell-max)) / 2));
-  
-  /* Geometric Architectural Radii - Zero Pills */
+
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
 
-  /* Motion - Natural & Restrained */
+  /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-smooth: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="dark"] {
-  /* Surface & Base (Dark Mode - Deep Obsidian / Twilight Ember) */
-  --bg: #0a0b0e;
-  --surface: #12141a;
-  --surface-subtle: #181b22;
-  --surface-hover: #1f232c;
-  --surface-elevated: #161820;
+  /* Moleskine Black Notebook / Graphite Charcoal */
+  --bg: #141517;
+  --dot-color: rgba(255, 255, 255, 0.06);
+  --surface: #1a1b1e;
+  --surface-subtle: #212327;
+  --surface-hover: #292b30;
+  --surface-elevated: #1f2024;
 
-  --ink: #f1f3f7;
-  --ink-secondary: #9ca3af;
-  --muted: #9ca3af;
-  --muted-light: #6b7280;
+  --ink: #f0ede6;
+  --ink-secondary: #9c9da3;
+  --muted: #84868e;
+  --muted-light: #5d5f66;
 
   --line: rgba(255, 255, 255, 0.08);
   --line-subtle: rgba(255, 255, 255, 0.04);
-  --line-focus: rgba(255, 255, 255, 0.20);
-  --line-strong: rgba(255, 255, 255, 0.15);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --line-focus: rgba(255, 255, 255, 0.28);
 
-  --accent: #f59e0b;
-  --accent-hover: #fbbf24;
-  --accent-soft: rgba(245, 158, 11, 0.12);
-  --accent-tint: rgba(245, 158, 11, 0.08);
-  --accent-glow: 0 0 16px rgba(245, 158, 11, 0.22);
-  --accent-rgb: 245, 158, 11;
+  --accent: #f0ede6;
+  --accent-hover: #ffffff;
+  --accent-soft: rgba(255, 255, 255, 0.08);
+  --accent-tint: rgba(255, 255, 255, 0.04);
+  --accent-rgb: 240, 237, 230;
+  --accent-glow: 0 0 12px rgba(255, 255, 255, 0.1);
 
-  --amber: #f59e0b;
-  --amber-subtle: rgba(245, 158, 11, 0.12);
-  --amber-glow: 0 0 16px rgba(245, 158, 11, 0.22);
+  --danger: #e25852;
+  --danger-soft: rgba(226, 88, 82, 0.12);
+  --success: #4ea86f;
+  --success-soft: rgba(78, 168, 111, 0.12);
 
-  --danger: #ef4444;
-  --danger-soft: rgba(239, 68, 68, 0.14);
-  --success: #10b981;
-  --success-soft: rgba(16, 185, 129, 0.14);
-
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.7);
-  --glow-shadow: 0 0 20px rgba(245, 158, 11, 0.18);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
 /* Global Reset & Base */
@@ -124,6 +114,9 @@ body {
   margin: 0;
   min-width: 320px;
   background-color: var(--bg);
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: center top;
   color: var(--ink);
   transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
@@ -144,7 +137,7 @@ button {
   padding: 0;
 }
 
-/* Accessibility & Focus Rings */
+/* Focus Ring */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
