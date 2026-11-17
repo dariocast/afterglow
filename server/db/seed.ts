@@ -1,7 +1,8 @@
-import { db, users, posts, reactions, replies } from './index';
+import { db, users, posts, reactions, replies, follows } from './index';
 
 export async function seedDatabase() {
   // Clear existing data in reverse dependency order
+  await db.delete(follows);
   await db.delete(replies);
   await db.delete(reactions);
   await db.delete(posts);
@@ -16,24 +17,32 @@ export async function seedDatabase() {
       id: 'usr_maya',
       username: 'maya_writes',
       displayName: 'Maya Chen',
+      bio: 'Collecting quiet mornings, notebook margins, and unhurried conversations.',
+      avatarColor: '#a26a42',
       createdAt: new Date(now - 48 * hour),
     },
     {
       id: 'usr_alex',
       username: 'alexr',
       displayName: 'Alex Rivera',
+      bio: 'Designing calmer tools and waiting for the kettle to boil.',
+      avatarColor: '#5a7d65',
       createdAt: new Date(now - 48 * hour),
     },
     {
       id: 'usr_jo',
       username: 'jopark',
       displayName: 'Jo Park',
+      bio: 'Notes on walking routes, late-afternoon light, and letting drafts expire.',
+      avatarColor: '#7a6590',
       createdAt: new Date(now - 48 * hour),
     },
     {
       id: 'usr_dario',
       username: 'dario',
       displayName: 'Dario Castellano',
+      bio: 'Building small places on the web where good things are allowed to end.',
+      avatarColor: '#b57a38',
       createdAt: new Date(now - 48 * hour),
     },
   ];
@@ -182,8 +191,46 @@ export async function seedDatabase() {
     await db.insert(replies).values(rep);
   }
 
+  // Insert Follows (sample asymmetric follow relationships)
+  const seedFollows = [
+    {
+      id: 'fol_1',
+      followerId: 'usr_maya',
+      followingId: 'usr_alex',
+      createdAt: new Date(now - 24 * hour),
+    },
+    {
+      id: 'fol_2',
+      followerId: 'usr_maya',
+      followingId: 'usr_dario',
+      createdAt: new Date(now - 22 * hour),
+    },
+    {
+      id: 'fol_3',
+      followerId: 'usr_alex',
+      followingId: 'usr_maya',
+      createdAt: new Date(now - 18 * hour),
+    },
+    {
+      id: 'fol_4',
+      followerId: 'usr_dario',
+      followingId: 'usr_jo',
+      createdAt: new Date(now - 16 * hour),
+    },
+    {
+      id: 'fol_5',
+      followerId: 'usr_jo',
+      followingId: 'usr_maya',
+      createdAt: new Date(now - 14 * hour),
+    },
+  ];
+
+  for (const fol of seedFollows) {
+    await db.insert(follows).values(fol);
+  }
+
   console.log(
-    `Database seeded successfully: ${seedUsers.length} users, ${seedPosts.length} posts, ${seedReactions.length} reactions, ${seedReplies.length} replies.`
+    `Database seeded successfully: ${seedUsers.length} users, ${seedPosts.length} posts, ${seedReactions.length} reactions, ${seedReplies.length} replies, ${seedFollows.length} follows.`
   );
 }
 

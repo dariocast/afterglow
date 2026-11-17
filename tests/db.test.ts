@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { db, users, posts, credentials, reactions, replies, sqlite } from '../server/db';
-import { eq } from 'drizzle-orm';
+import { db, users, posts, credentials, reactions, replies, follows, sqlite, type Follow, type NewFollow } from '../server/db';
+import { seedDatabase } from '../server/db/seed';
+import { eq, or } from 'drizzle-orm';
 
 describe('Database Schema & Operations', () => {
   it('creates a user and a post with expiry', async () => {
@@ -149,5 +150,108 @@ describe('Database Schema & Operations', () => {
     await db.delete(users).where(eq(users.id, userId));
     const remainingPosts = await db.select().from(posts).where(eq(posts.id, postId));
     expect(remainingPosts.length).toBe(0);
+  });
+
+  it('creates a user with bio and avatarColor', async () => {
+    const userId = 'u-test-profile';
+    await db.insert(users).values({
+      id: userId,
+      username: 'elena_profile',
+      displayName: 'Elena Vance',
+      bio: 'Observing quiet intersections of light and city architecture.',
+      avatarColor: '#a26a42',
+      createdAt: new Date(),
+    });
+
+    const result = await db.select().from(users).where(eq(users.id, userId));
+    expect(result.length).toBe(1);
+    expect(result[0].bio).toBe('Observing quiet intersections of light and city architecture.');
+    expect(result[0].avatarColor).toBe('#a26a42');
+  });
+
+  it('creates follow relationships and enforces uniqueness on (followerId, followingId)', async () => {
+    const followerId = 'u-follow-1';
+    const followingId = 'u-follow-2';
+
+    await db.insert(users).values([
+      {
+        id: followerId,
+        username: 'follower_user',
+        displayName: 'Follower User',
+        createdAt: new Date(),
+      },
+      {
+        id: followingId,
+        username: 'following_user',
+        displayName: 'Following User',
+        createdAt: new Date(),
+      },
+    ]);
+
+    await db.insert(follows).values({
+      id: 'fol-test-1',
+      followerId,
+      followingId,
+      createdAt: new Date(),
+    });
+
+    const created = await db.select().from(follows).where(eq(follows.id, 'fol-test-1'));
+    expect(created.length).toBe(1);
+    expect(created[0].followerId).toBe(followerId);
+    expect(created[0].followingId).toBe(followingId);
+
+    // Duplicate follow pair violates unique index
+    await expect(
+      db.insert(follows).values({
+        id: 'fol-test-2',
+        followerId,
+        followingId,
+        createdAt: new Date(),
+      })
+    ).rejects.toThrow();
+  });
+
+  it('cascade deletes follows records when either user is deleted', async () => {
+    const userA = 'u-cascade-a';
+    const userB = 'u-cascade-b';
+    const userC = 'u-cascade-c';
+
+    await db.insert(users).values([
+      { id: userA, username: 'cascade_a', displayName: 'Cascade A', createdAt: new Date() },
+      { id: userB, username: 'cascade_b', displayName: 'Cascade B', createdAt: new Date() },
+      { id: userC, username: 'cascade_c', displayName: 'Cascade C', createdAt: new Date() },
+    ]);
+
+    await db.insert(follows).values([
+      { id: 'fol-cas-1', followerId: userA, followingId: userB, createdAt: new Date() },
+      { id: 'fol-cas-2', followerId: userC, followingId: userA, createdAt: new Date() },
+      { id: 'fol-cas-3', followerId: userB, followingId: userC, createdAt: new Date() },
+    ]);
+
+    // Deleting userA removes follows where userA is follower OR following, leaving B -> C intact
+    await db.delete(users).where(eq(users.id, userA));
+
+    const remainingForA = await db
+      .select()
+      .from(follows)
+      .where(or(eq(follows.followerId, userA), eq(follows.followingId, userA)));
+    expect(remainingForA.length).toBe(0);
+
+    const remainingBC = await db.select().from(follows).where(eq(follows.id, 'fol-cas-3'));
+    expect(remainingBC.length).toBe(1);
+  });
+
+  it('seeds users with bios and avatar colors along with sample follow connections', async () => {
+    await seedDatabase();
+
+    const seededUsers = await db.select().from(users);
+    expect(seededUsers.length).toBe(4);
+    for (const user of seededUsers) {
+      expect(user.bio).toBeTruthy();
+      expect(user.avatarColor).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+
+    const seededFollows: Follow[] = await db.select().from(follows);
+    expect(seededFollows.length).toBeGreaterThanOrEqual(3);
   });
 });

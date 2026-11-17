@@ -5,6 +5,8 @@ export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
   username: text('username').notNull().unique(),
   displayName: text('display_name').notNull(),
+  bio: text('bio'),
+  avatarColor: text('avatar_color'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
 
@@ -64,6 +66,24 @@ export const replies = sqliteTable('replies', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
 });
 
+// Follows (Asymmetric follow graph, unique per follower and following pair)
+export const follows = sqliteTable(
+  'follows',
+  {
+    id: text('id').primaryKey(),
+    followerId: text('follower_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    followingId: text('following_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
+  },
+  (table) => [
+    uniqueIndex('follower_following_idx').on(table.followerId, table.followingId),
+  ]
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Credential = typeof credentials.$inferSelect;
@@ -74,3 +94,5 @@ export type Reaction = typeof reactions.$inferSelect;
 export type NewReaction = typeof reactions.$inferInsert;
 export type Reply = typeof replies.$inferSelect;
 export type NewReply = typeof replies.$inferInsert;
+export type Follow = typeof follows.$inferSelect;
+export type NewFollow = typeof follows.$inferInsert;

@@ -16,6 +16,8 @@ sqlite.exec(`
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     display_name TEXT NOT NULL,
+    bio TEXT,
+    avatar_color TEXT,
     created_at INTEGER NOT NULL
   );
 
@@ -54,6 +56,25 @@ sqlite.exec(`
     content TEXT NOT NULL,
     created_at INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS follows (
+    id TEXT PRIMARY KEY,
+    follower_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    following_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS follower_following_idx ON follows (follower_id, following_id);
 `);
+
+// Safely migrate existing users tables missing profile columns
+const userColumns = sqlite.pragma('table_info(users)') as Array<{ name: string }>;
+const userColumnNames = new Set(userColumns.map((col) => col.name));
+if (!userColumnNames.has('bio')) {
+  sqlite.exec('ALTER TABLE users ADD COLUMN bio TEXT;');
+}
+if (!userColumnNames.has('avatar_color')) {
+  sqlite.exec('ALTER TABLE users ADD COLUMN avatar_color TEXT;');
+}
 
 export const db = drizzle(sqlite, { schema });
