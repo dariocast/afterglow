@@ -1,10 +1,13 @@
 <script lang="ts">
-  // HeroSection.svelte - Warm editorial intro
+  import Icon from './icons/Icon.svelte';
 </script>
 
 <section class="intro-grid">
   <div class="intro-text">
-    <p class="eyebrow">A finite social network</p>
+    <div class="eyebrow-wrap">
+      <span class="eyebrow-dot"></span>
+      <p class="eyebrow">A finite social space</p>
+    </div>
     <h1>Good things<br /><em>can end.</em></h1>
     <p class="lede">
       Share a thought, a reflection, or a quiet moment. Afterglow gives it room to breathe — then lets it go.
@@ -12,39 +15,56 @@
   </div>
 
   <div class="manifesto-card">
-    <div class="card-kicker">The promise</div>
-    <p>Nothing here is meant to become a backlog.</p>
+    <div class="card-kicker">
+      <Icon name="spark" size={13} />
+      <span>The thesis</span>
+    </div>
+    <p class="manifesto-quote">Nothing here is meant to become an accumulating backlog.</p>
     <div class="manifesto-meta">
-      <span>no archive</span>
-      <span>no infinite scroll</span>
-      <span>clean expiry</span>
+      <span class="meta-tag">No archive</span>
+      <span class="meta-tag">No infinite scroll</span>
+      <span class="meta-tag">Natural closure</span>
     </div>
   </div>
 </section>
 
 <style>
   .intro-grid {
-    padding: 64px 0 52px;
+    padding: 72px 0 56px;
     display: grid;
-    grid-template-columns: 1.15fr 0.85fr;
-    gap: 70px;
+    grid-template-columns: 1.25fr 0.85fr;
+    gap: 64px;
     align-items: end;
+  }
+
+  .eyebrow-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .eyebrow-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: var(--accent);
   }
 
   .eyebrow {
     color: var(--accent);
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.17em;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin: 0 0 16px;
+    margin: 0;
   }
 
   h1 {
     font-family: var(--serif);
-    font-size: clamp(48px, 7vw, 88px);
-    line-height: 0.92;
-    letter-spacing: -0.06em;
+    font-size: clamp(44px, 6.2vw, 80px);
+    line-height: 0.94;
+    letter-spacing: -0.04em;
     font-weight: 400;
     margin: 0 0 24px;
     color: var(--ink);
@@ -53,71 +73,79 @@
   h1 em {
     color: var(--accent);
     font-style: italic;
+    font-weight: 300;
   }
 
   .lede {
-    max-width: 480px;
+    max-width: 460px;
     color: var(--muted);
-    line-height: 1.6;
+    line-height: 1.65;
     font-size: 16px;
+    font-weight: 400;
     margin: 0;
   }
 
   .manifesto-card {
-    background: var(--accent);
-    color: #fff7ef;
-    padding: 32px;
-    min-height: 200px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 32px 32px 28px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transform: rotate(0.8deg);
-    box-shadow: 10px 14px 0 var(--accent-soft);
-    border-radius: var(--radius-sm);
-    transition: transform var(--transition-smooth);
+    min-height: 200px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
   .manifesto-card:hover {
-    transform: rotate(0deg) translateY(-2px);
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-md);
   }
 
   .card-kicker {
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.17em;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #ffe4d8;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
-  .manifesto-card p {
+  .manifesto-quote {
     font-family: var(--serif);
-    font-size: clamp(24px, 3.2vw, 32px);
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-    margin: 16px 0;
+    font-size: clamp(21px, 2.4vw, 26px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 20px 0;
+    font-weight: 400;
   }
 
   .manifesto-meta {
     display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    opacity: 0.85;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  @media (max-width: 768px) {
+  .meta-tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--surface-2);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--line-subtle);
+  }
+
+  @media (max-width: 860px) {
     .intro-grid {
       grid-template-columns: 1fr;
       gap: 36px;
-      padding-top: 40px;
-    }
-
-    .manifesto-card {
-      max-width: 100%;
-      transform: none;
-      box-shadow: 6px 8px 0 var(--accent-soft);
+      padding: 44px 0 36px;
     }
   }
 </style>

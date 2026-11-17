@@ -2,6 +2,7 @@
   import { authStore } from '../lib/auth.svelte';
   import { pwaStore } from '../lib/pwa.svelte';
   import type { User } from '../lib/api';
+  import Icon from './icons/Icon.svelte';
 
   interface Props {
     theme?: 'light' | 'dark';
@@ -45,19 +46,23 @@
 <header class="topbar">
   <div class="shell topbar-inner">
     <a class="brand" href="#top" aria-label="Afterglow home">
-      <span class="brand-mark" aria-hidden="true">✦</span> afterglow
+      <span class="brand-mark">
+        <Icon name="spark" size={16} />
+      </span>
+      <span class="brand-name">afterglow</span>
     </a>
 
     <nav class="top-actions" aria-label="App controls">
       {#if !pwaStore.isStandalone}
         <button
-          class="icon-button pwa-install-trigger"
+          class="nav-action-btn install-btn"
           type="button"
           onclick={() => { if (onInstallClick) onInstallClick(); else pwaStore.openInstallModal(); }}
-          aria-label="Installa Web App"
-          title="Installa Afterglow Web App"
+          aria-label="Install web application"
+          title="Install Afterglow"
         >
-          <span aria-hidden="true">📲</span>
+          <Icon name="device" size={15} />
+          <span class="install-label">Install</span>
         </button>
       {/if}
 
@@ -66,10 +71,14 @@
         id="theme-toggle"
         type="button"
         onclick={onToggleTheme}
-        aria-label="Toggle {theme === 'light' ? 'dark' : 'light'} theme"
-        title="Toggle {theme === 'light' ? 'dark' : 'light'} theme"
+        aria-label="Switch to {theme === 'light' ? 'dark' : 'light'} theme"
+        title="Switch to {theme === 'light' ? 'dark' : 'light'} theme"
       >
-        <span aria-hidden="true">{theme === 'light' ? '☾' : '☼'}</span>
+        {#if theme === 'light'}
+          <Icon name="moon" size={16} />
+        {:else}
+          <Icon name="sun" size={16} />
+        {/if}
       </button>
 
       {#if activeUser}
@@ -93,7 +102,8 @@
           type="button"
           onclick={onAuthClick}
         >
-          Sign in
+          <Icon name="key" size={14} />
+          <span>Sign in</span>
         </button>
       {/if}
     </nav>
@@ -105,126 +115,167 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    height: 68px;
-    border-bottom: 1px solid var(--line);
-    background-color: var(--bg);
-    backdrop-filter: blur(8px);
+    background-color: rgba(var(--bg-rgb, 248, 246, 240), 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line-subtle);
     transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
   }
 
+  :global([data-theme="dark"]) .topbar {
+    background-color: rgba(18, 20, 18, 0.88);
+  }
+
   .topbar-inner {
-    height: 100%;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    width: min(100% - 44px, var(--shell-max));
-    margin: 0 auto;
+    align-items: center;
+    height: 60px;
   }
 
   .brand {
-    color: var(--ink);
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 9px;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    transition: opacity var(--transition-fast);
+  }
+
+  .brand:hover {
+    opacity: 0.8;
   }
 
   .brand-mark {
     color: var(--accent);
-    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-name {
+    font-family: var(--sans);
+    font-size: 16px;
+    letter-spacing: -0.02em;
   }
 
   .top-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
+  }
+
+  .nav-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-secondary);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    transition: all var(--transition-fast);
+  }
+
+  .nav-action-btn:hover {
+    background: var(--surface-hover);
+    color: var(--ink);
+    border-color: var(--line-strong);
   }
 
   .icon-button {
-    background: none;
-    color: var(--muted);
-    border: 0;
-    font-size: 18px;
-    padding: 8px;
-    border-radius: var(--radius-sm);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: color var(--transition-fast), background-color var(--transition-fast);
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all var(--transition-fast);
   }
 
   .icon-button:hover {
     color: var(--ink);
-    background-color: var(--surface-2);
+    background: var(--surface-2);
+    border-color: var(--line);
   }
 
   .user-menu {
     display: flex;
     align-items: center;
     gap: 10px;
+    padding-left: 6px;
   }
 
   .avatar {
     width: 32px;
     height: 32px;
     border-radius: var(--radius-full);
-    background: var(--ink);
-    color: var(--bg);
-    display: grid;
-    place-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+  }
+
+  .avatar-small {
+    width: 28px;
+    height: 28px;
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
   }
 
   .user-name {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--ink);
     max-width: 140px;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .logout-button {
-    background: transparent;
-    border: 1px solid var(--line);
+    font-size: 12px;
     color: var(--muted);
-    font-size: 11px;
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    transition: all var(--transition-fast);
-    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-xs);
+    transition: color var(--transition-fast);
   }
 
   .logout-button:hover {
-    color: var(--ink);
-    border-color: var(--ink);
+    color: var(--danger);
   }
 
   .auth-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 500;
     background: var(--ink);
     color: var(--bg);
-    border: 1px solid var(--ink);
-    padding: 8px 14px;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: transform var(--transition-fast), opacity var(--transition-fast);
+    transition: opacity var(--transition-fast);
   }
 
   .auth-button:hover {
-    transform: translateY(-1px);
-    opacity: 0.9;
+    opacity: 0.88;
   }
 
   @media (max-width: 600px) {
+    .install-label {
+      display: none;
+    }
     .user-name {
       display: none;
     }

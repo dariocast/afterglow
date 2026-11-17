@@ -1,6 +1,7 @@
 <script lang="ts">
   import { authStore } from '../lib/auth.svelte';
   import type { User } from '../lib/api';
+  import Icon from './icons/Icon.svelte';
 
   interface Props {
     currentUser?: User | null;
@@ -97,34 +98,66 @@
       </span>
 
       <div class="composer-controls">
-        <label class="expiry-label" for="expiry-select">
-          <span>Lives for</span>
-          <select id="expiry-select" bind:value={lifetimeHours} disabled={isSubmitting}>
+        <div class="lifetime-selector" role="group" aria-label="Lifespan of this moment">
+          <span class="lifetime-label">Lives for</span>
+          <div class="lifetime-pills">
+            <button
+              type="button"
+              class="pill-btn"
+              class:active={lifetimeHours === 24}
+              onclick={() => { lifetimeHours = 24; }}
+              disabled={isSubmitting}
+            >
+              24h
+            </button>
+            <button
+              type="button"
+              class="pill-btn"
+              class:active={lifetimeHours === 72}
+              onclick={() => { lifetimeHours = 72; }}
+              disabled={isSubmitting}
+            >
+              3d
+            </button>
+            <button
+              type="button"
+              class="pill-btn"
+              class:active={lifetimeHours === 168}
+              onclick={() => { lifetimeHours = 168; }}
+              disabled={isSubmitting}
+            >
+              7d
+            </button>
+          </div>
+          <!-- Hidden select for form accessibility/compatibility -->
+          <select id="expiry-select" bind:value={lifetimeHours} class="sr-only" tabindex="-1">
             <option value={24}>24 hours</option>
             <option value={72}>3 days</option>
             <option value={168}>7 days</option>
           </select>
-        </label>
+        </div>
 
         {#if activeUser}
           <button
-            class="button button-dark"
+            class="submit-btn"
             type="submit"
             disabled={isEmpty || isOverLimit || isSubmitting}
           >
             {#if isSubmitting}
-              Releasing…
+              <span>Sharing…</span>
             {:else}
-              Share moment <span aria-hidden="true">↗</span>
+              <span>Share moment</span>
+              <Icon name="arrow-up-right" size={14} />
             {/if}
           </button>
         {:else}
           <button
-            class="button button-dark"
+            class="submit-btn outline"
             type="button"
             onclick={onRequestAuth}
           >
-            Sign in to share <span aria-hidden="true">↗</span>
+            <Icon name="key" size={14} />
+            <span>Sign in to post</span>
           </button>
         {/if}
       </div>
@@ -136,162 +169,187 @@
   .composer-card {
     background: var(--surface);
     border: 1px solid var(--line);
-    padding: 28px;
-    margin-bottom: 64px;
-    border-radius: var(--radius-sm);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    margin-bottom: 48px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .composer-card:focus-within {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-md);
   }
 
   .composer-head {
     display: flex;
-    gap: 14px;
     align-items: center;
-    margin-bottom: 20px;
+    gap: 14px;
+    margin-bottom: 18px;
   }
 
   .avatar {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
+    width: 38px;
+    height: 38px;
     border-radius: var(--radius-full);
-    background: var(--ink);
-    color: var(--bg);
-    display: grid;
-    place-items: center;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
+    background: var(--surface-2);
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--line);
   }
 
   .composer-title-wrap h2 {
-    font-size: 18px;
-    margin: 0 0 3px;
-    letter-spacing: -0.02em;
+    font-size: 16px;
     font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 2px;
     color: var(--ink);
   }
 
   .composer-title-wrap p {
-    color: var(--muted);
     font-size: 13px;
+    color: var(--muted);
     margin: 0;
   }
 
   .composer-title-wrap strong {
-    color: var(--accent);
+    color: var(--ink);
+    font-weight: 500;
   }
 
   textarea {
     width: 100%;
-    min-height: 110px;
-    resize: vertical;
-    border: 0;
-    outline: 0;
-    background: transparent;
+    min-height: 100px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
     color: var(--ink);
-    font-family: var(--serif);
-    font-size: 24px;
-    line-height: 1.35;
-    padding: 6px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: var(--surface);
   }
 
   textarea::placeholder {
     color: var(--muted);
-    opacity: 0.6;
-    font-style: italic;
   }
 
   .error-banner {
-    padding: 10px 14px;
-    margin-bottom: 12px;
-    background-color: rgba(179, 57, 57, 0.1);
-    border-left: 3px solid var(--danger);
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: var(--danger-soft);
     color: var(--danger);
     font-size: 13px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xs);
   }
 
   .composer-footer {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    border-top: 1px solid var(--line);
-    padding-top: 16px;
-    color: var(--muted);
-    font-size: 12px;
+    align-items: center;
+    margin-top: 14px;
+    gap: 16px;
+    flex-wrap: wrap;
   }
 
   .char-count {
+    font-size: 12px;
+    color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
 
   .char-count.over-limit {
     color: var(--danger);
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .composer-controls {
     display: flex;
-    gap: 16px;
     align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
   }
 
-  .expiry-label {
+  .lifetime-selector {
     display: flex;
-    gap: 8px;
     align-items: center;
-    font-size: 12px;
+    gap: 8px;
   }
 
-  .expiry-label select {
+  .lifetime-label {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .lifetime-pills {
+    display: inline-flex;
+    background: var(--surface-2);
+    padding: 2px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--line-subtle);
+  }
+
+  .pill-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    border-radius: var(--radius-full);
+    transition: all var(--transition-fast);
+  }
+
+  .pill-btn:hover {
     color: var(--ink);
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 600;
-    outline: 0;
   }
 
-  .button {
-    border: 1px solid var(--ink);
-    padding: 11px 18px;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border-radius: var(--radius-sm);
+  .pill-btn.active {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-xs);
+    font-weight: 600;
+  }
+
+  .submit-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: transform var(--transition-fast), background-color var(--transition-fast), opacity var(--transition-fast);
+    gap: 7px;
+    padding: 8px 18px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all var(--transition-fast);
   }
 
-  .button:hover:not(:disabled) {
-    transform: translateY(-2px);
+  .submit-btn:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: translateY(-1px);
   }
 
-  .button:disabled {
+  .submit-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .button-dark {
-    background: var(--ink);
-    color: var(--bg);
+  .submit-btn.outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
   }
 
-  @media (max-width: 650px) {
-    .composer-footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 14px;
-    }
-
-    .composer-controls {
-      width: 100%;
-      justify-content: space-between;
-    }
+  .submit-btn.outline:hover {
+    background: var(--surface-2);
   }
 </style>

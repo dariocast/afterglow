@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Post, ReactionKind } from '../lib/api';
+  import Icon from './icons/Icon.svelte';
 
   interface Props {
     post: Post;
@@ -124,370 +125,397 @@
 </script>
 
 <article
-  class="post"
+  class="post-card"
   class:ending-soon={isEndingSoon}
   class:expired={isExpired}
   data-id={post.id}
 >
-  <div class="post-top">
-    <div class="avatar" aria-hidden="true">{initials}</div>
-    <div class="author-meta">
-      <div class="post-author">{post.author?.displayName || 'Anonymous'}</div>
-      <div class="post-handle">@{post.author?.username || 'user'}</div>
+  <!-- Lifespan subtle progress bar -->
+  <div
+    class="lifespan-track"
+    role="progressbar"
+    aria-valuenow={Math.round(lifespanPercent)}
+    aria-valuemin={0}
+    aria-valuemax={100}
+    aria-label="Remaining moment lifespan"
+  >
+    <div
+      class="lifespan-fill life-line"
+      style="width: {lifespanPercent}%;"
+      class:urgent={isEndingSoon}
+    ></div>
+  </div>
+
+  <div class="post-header">
+    <div class="author-block">
+      <div class="avatar" aria-hidden="true">{initials}</div>
+      <div class="author-info">
+        <span class="author-name">{post.author?.displayName || 'Anonymous'}</span>
+        <span class="author-handle">@{post.author?.username || 'user'}</span>
+      </div>
     </div>
-    {#if isAuthor}
-      <button
-        class="delete-btn"
-        type="button"
-        onclick={handleDelete}
-        aria-label="Delete this moment"
-        title="Delete this moment"
+
+    <div class="post-meta-actions">
+      {#if isAuthor}
+        <button
+          class="delete-btn"
+          type="button"
+          onclick={handleDelete}
+          aria-label="Delete this moment"
+          title="Delete this moment early"
+        >
+          <Icon name="trash" size={13} />
+          <span class="delete-label">Delete</span>
+        </button>
+      {/if}
+
+      <div
+        class="expiry-pill"
+        class:urgent={isEndingSoon}
+        title={new Date(post.expiresAt).toLocaleString()}
       >
-        <span class="delete-icon" aria-hidden="true">✕</span>
-        <span class="delete-label">Delete</span>
-      </button>
-    {/if}
-    <div class="expiry-badge" class:urgent={isEndingSoon} title={new Date(post.expiresAt).toLocaleString()}>
-      <span class="expiry-dot" aria-hidden="true"></span>
-      {expiryLabel}
+        <Icon name="clock" size={12} />
+        <span>{expiryLabel}</span>
+      </div>
     </div>
   </div>
 
-  <p class="post-copy">{post.content}</p>
+  <p class="post-content">{post.content}</p>
 
-  <div class="post-bottom">
-    <div class="post-actions">
-      <!-- Glow reaction -->
+  <div class="post-footer">
+    <div class="reactions-group" role="group" aria-label="Reactions">
       <button
-        class="action-btn"
+        class="reaction-btn"
         class:active={post.userReaction === 'glow'}
         type="button"
         onclick={() => handleReactionClick('glow')}
         aria-label="Glow reaction ({post.reactions?.glow || 0})"
       >
-        <span class="action-icon" aria-hidden="true">✦</span>
-        <span class="action-label">glow</span>
-        <span class="action-count">{post.reactions?.glow || 0}</span>
+        <Icon name="spark" size={13} />
+        <span class="reaction-label">glow</span>
+        {#if (post.reactions?.glow || 0) > 0}
+          <span class="reaction-count">{post.reactions?.glow}</span>
+        {/if}
       </button>
 
-      <!-- Warm reaction -->
       <button
-        class="action-btn"
+        class="reaction-btn"
         class:active={post.userReaction === 'warm'}
         type="button"
         onclick={() => handleReactionClick('warm')}
         aria-label="Warm reaction ({post.reactions?.warm || 0})"
       >
-        <span class="action-icon" aria-hidden="true">♥</span>
-        <span class="action-label">warm</span>
-        <span class="action-count">{post.reactions?.warm || 0}</span>
+        <Icon name="heart" size={13} />
+        <span class="reaction-label">warm</span>
+        {#if (post.reactions?.warm || 0) > 0}
+          <span class="reaction-count">{post.reactions?.warm}</span>
+        {/if}
       </button>
 
-      <!-- Thought reaction -->
       <button
-        class="action-btn"
+        class="reaction-btn"
         class:active={post.userReaction === 'thought'}
         type="button"
         onclick={() => handleReactionClick('thought')}
         aria-label="Thought reaction ({post.reactions?.thought || 0})"
       >
-        <span class="action-icon" aria-hidden="true">◌</span>
-        <span class="action-label">thought</span>
-        <span class="action-count">{post.reactions?.thought || 0}</span>
+        <Icon name="bubble" size={13} />
+        <span class="reaction-label">thought</span>
+        {#if (post.reactions?.thought || 0) > 0}
+          <span class="reaction-count">{post.reactions?.thought}</span>
+        {/if}
       </button>
+    </div>
 
-      <!-- Replies toggle -->
+    <div class="utility-actions">
       <button
-        class="action-btn replies-btn"
-        class:active={showReplies}
+        class="utility-btn"
         type="button"
         onclick={() => { showReplies = !showReplies; }}
-        aria-label="Toggle replies ({post.replies?.length || 0})"
+        aria-expanded={showReplies}
+        aria-label="{post.replies?.length || 0} replies"
       >
-        <span class="action-icon" aria-hidden="true">💬</span>
-        <span class="action-count">{post.replies?.length || 0}</span>
+        <span>{post.replies?.length || 0} replies</span>
       </button>
 
-      <!-- Share -->
       <button
-        class="action-btn share-btn"
+        class="utility-btn icon-only"
         type="button"
         onclick={handleShare}
-        aria-label="Share post"
-        title="Copy to clipboard"
+        aria-label="Share this moment"
+        title="Copy moment quote"
       >
-        <span aria-hidden="true">{copyFeedback ? '✓' : '↗'}</span>
+        {#if copyFeedback}
+          <Icon name="check" size={14} />
+        {:else}
+          <Icon name="share" size={14} />
+        {/if}
       </button>
     </div>
-
-    <!-- Lifespan glow progress bar -->
-    <div
-      class="life-line"
-      class:glow-pulse={isEndingSoon}
-      role="progressbar"
-      aria-label="Lifespan: {expiryLabel}"
-      aria-valuenow={Math.round(lifespanPercent)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-    >
-      <span class="life-bar" style="width: {lifespanPercent}%;"></span>
-    </div>
-
-    <!-- Expandable replies panel -->
-    {#if showReplies}
-      <div class="replies-panel">
-        {#if post.replies && post.replies.length > 0}
-          <div class="replies-list">
-            {#each post.replies as reply (reply.id)}
-              <div class="reply-item">
-                <div class="reply-header">
-                  <span class="reply-author">{reply.author?.displayName || reply.author?.username}</span>
-                  <span class="reply-handle">@{reply.author?.username}</span>
-                </div>
-                <div class="reply-content">{reply.content}</div>
-              </div>
-            {/each}
-          </div>
-        {/if}
-
-        <form class="reply-form" onsubmit={handleReplySubmit}>
-          <label class="sr-only" for="reply-input-{post.id}">Write a reply</label>
-          <input
-            id="reply-input-{post.id}"
-            type="text"
-            maxlength="280"
-            bind:value={replyText}
-            placeholder={currentUserId ? "Add a thought before it fades…" : "Sign in to reply…"}
-            disabled={isSubmittingReply}
-            required
-          />
-          <button
-            type="submit"
-            disabled={!replyText.trim() || isSubmittingReply}
-          >
-            Reply
-          </button>
-        </form>
-      </div>
-    {/if}
   </div>
+
+  {#if showReplies}
+    <div class="replies-section">
+      {#if post.replies && post.replies.length > 0}
+        <div class="replies-list">
+          {#each post.replies as reply}
+            <div class="reply-card">
+              <div class="reply-header">
+                <strong>{reply.author?.displayName || reply.author?.username || 'Guest'}</strong>
+                <span class="reply-time">{new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <p class="reply-text">{reply.content}</p>
+            </div>
+          {/each}
+        </div>
+      {:else}
+        <p class="no-replies">No replies yet. A quiet space to respond.</p>
+      {/if}
+
+      <form class="reply-form" onsubmit={handleReplySubmit}>
+        <label class="sr-only" for="reply-input-{post.id}">Write a reply</label>
+        <input
+          id="reply-input-{post.id}"
+          type="text"
+          bind:value={replyText}
+          placeholder={currentUserId ? "Leave a finite response…" : "Sign in to reply…"}
+          maxlength="280"
+          disabled={isSubmittingReply}
+          required
+        />
+        <button
+          type="submit"
+          class="reply-submit-btn"
+          disabled={!replyText.trim() || isSubmittingReply}
+        >
+          {isSubmittingReply ? '...' : 'Reply'}
+        </button>
+      </form>
+    </div>
+  {/if}
 </article>
 
 <style>
-  .post {
-    padding: 28px 24px 30px;
-    border-bottom: 1px solid var(--line);
-    min-height: 240px;
-    display: flex;
-    flex-direction: column;
+  .post-card {
     background: var(--surface);
-    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 24px 26px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-xs);
     position: relative;
+    overflow: hidden;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .post.ending-soon {
-    background: linear-gradient(to bottom, var(--surface), rgba(var(--accent-rgb), 0.03));
+  .post-card:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-sm);
   }
 
-  .post-top {
+  .post-card.ending-soon {
+    border-color: rgba(var(--accent-rgb), 0.35);
+    background: linear-gradient(to bottom, var(--accent-tint), transparent 48px), var(--surface);
+  }
+
+  .post-card.expired {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .lifespan-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--line-subtle);
+  }
+
+  .lifespan-fill {
+    height: 100%;
+    background: var(--muted-light);
+    transition: width 1s linear;
+  }
+
+  .lifespan-fill.urgent {
+    background: var(--accent);
+  }
+
+  .post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .author-block {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 11px;
   }
 
   .avatar {
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
+    width: 34px;
+    height: 34px;
     border-radius: var(--radius-full);
-    background: var(--ink);
-    color: var(--bg);
-    display: grid;
-    place-items: center;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
+    background: var(--surface-2);
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--line);
   }
 
-  .author-meta {
-    flex: 1;
-    min-width: 0;
+  .author-info {
+    display: flex;
+    flex-direction: column;
   }
 
-  .post-author {
+  .author-name {
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--ink);
     line-height: 1.2;
   }
 
-  .post-handle {
-    color: var(--muted);
+  .author-handle {
     font-size: 12px;
+    color: var(--muted);
+  }
+
+  .post-meta-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .delete-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
-  }
-
-  .delete-btn:hover {
-    color: #e5484d;
-    border-color: rgba(229, 72, 77, 0.25);
-    background: rgba(229, 72, 77, 0.06);
-  }
-
-  .delete-btn:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  .delete-icon {
-    font-size: 10px;
-    line-height: 1;
-  }
-
-  .expiry-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    background-color: var(--surface-2);
-  }
-
-  .expiry-badge.urgent {
-    color: var(--accent);
-    background-color: var(--accent-soft);
-  }
-
-  .expiry-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: currentColor;
-  }
-
-  .post-copy {
-    font-family: var(--serif);
-    font-size: clamp(20px, 2.5vw, 24px);
-    line-height: 1.25;
-    letter-spacing: -0.025em;
-    margin: 24px 0 20px;
-    color: var(--ink);
-    word-break: break-word;
-  }
-
-  .post-bottom {
-    margin-top: auto;
-  }
-
-  .post-actions {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    color: var(--muted);
-    font-size: 11px;
-    padding-bottom: 12px;
-  }
-
-  .action-btn {
-    border: 0;
-    background: transparent;
-    color: var(--muted);
-    padding: 6px 8px;
-    border-radius: var(--radius-sm);
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
     font-size: 12px;
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: var(--radius-xs);
     transition: all var(--transition-fast);
   }
 
-  .action-btn:hover {
-    color: var(--ink);
-    background-color: var(--surface-2);
+  .delete-btn:hover {
+    color: var(--danger);
+    background: var(--danger-soft);
   }
 
-  .action-btn.active {
-    color: var(--accent);
-    background-color: var(--accent-soft);
-    font-weight: 700;
-  }
-
-  .action-icon {
-    font-size: 13px;
-  }
-
-  .action-label {
-    text-transform: capitalize;
-  }
-
-  .action-count {
+  .expiry-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-size: 11px;
-    opacity: 0.85;
-  }
-
-  .share-btn {
-    margin-left: auto;
-    font-size: 14px;
-  }
-
-  /* Life line / remaining glow indicator */
-  .life-line {
-    height: 3px;
+    font-weight: 500;
+    color: var(--muted);
     background: var(--surface-2);
-    width: 100%;
+    padding: 4px 9px;
     border-radius: var(--radius-full);
-    overflow: hidden;
-    margin-top: 4px;
+    border: 1px solid var(--line-subtle);
+    font-variant-numeric: tabular-nums;
   }
 
-  .life-bar {
-    display: block;
-    height: 100%;
-    background: var(--accent);
-    transition: width 0.5s ease-out;
+  .expiry-pill.urgent {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: rgba(var(--accent-rgb), 0.3);
+    font-weight: 600;
   }
 
-  .glow-pulse .life-bar {
-    background: var(--accent-glow);
-    box-shadow: 0 0 8px var(--accent-glow);
-    animation: pulseGlow 2s infinite ease-in-out;
+  .post-content {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin: 0 0 20px;
+    word-break: break-word;
+    letter-spacing: -0.01em;
   }
 
-  @keyframes pulseGlow {
-    0%, 100% {
-      opacity: 1;
-      filter: drop-shadow(0 0 2px var(--accent-glow));
-    }
-    50% {
-      opacity: 0.6;
-      filter: drop-shadow(0 0 6px var(--accent-glow));
-    }
-  }
-
-  /* Replies list and form */
-  .replies-panel {
-    margin-top: 18px;
+  .post-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding-top: 14px;
-    border-top: 1px solid var(--line-light);
+    border-top: 1px solid var(--line-subtle);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .reactions-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .reaction-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: var(--surface-2);
+    border: 1px solid var(--line-subtle);
+    transition: all var(--transition-fast);
+  }
+
+  .reaction-btn:hover {
+    color: var(--ink);
+    border-color: var(--line);
+  }
+
+  .reaction-btn.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: rgba(var(--accent-rgb), 0.35);
+  }
+
+  .reaction-count {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .utility-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .utility-btn {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 5px 9px;
+    border-radius: var(--radius-xs);
+    transition: color var(--transition-fast);
+  }
+
+  .utility-btn:hover {
+    color: var(--ink);
+  }
+
+  .utility-btn.icon-only {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+  }
+
+  .replies-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
   }
 
   .replies-list {
@@ -497,7 +525,7 @@
     margin-bottom: 14px;
   }
 
-  .reply-item {
+  .reply-card {
     background: var(--surface-2);
     padding: 10px 14px;
     border-radius: var(--radius-sm);
@@ -506,25 +534,30 @@
 
   .reply-header {
     display: flex;
-    gap: 8px;
-    align-items: baseline;
+    justify-content: space-between;
     margin-bottom: 4px;
-  }
-
-  .reply-author {
-    font-weight: 700;
-    color: var(--ink);
     font-size: 12px;
   }
 
-  .reply-handle {
-    color: var(--muted);
-    font-size: 11px;
+  .reply-header strong {
+    color: var(--ink);
   }
 
-  .reply-content {
-    color: var(--ink);
-    line-height: 1.4;
+  .reply-time {
+    color: var(--muted);
+  }
+
+  .reply-text {
+    margin: 0;
+    color: var(--ink-secondary);
+    line-height: 1.45;
+  }
+
+  .no-replies {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    margin: 0 0 14px;
   }
 
   .reply-form {
@@ -534,13 +567,12 @@
 
   .reply-form input {
     flex: 1;
-    min-width: 0;
-    border: 1px solid var(--line);
-    background: transparent;
-    color: var(--ink);
     padding: 8px 12px;
     font-size: 13px;
+    background: var(--bg);
+    border: 1px solid var(--line);
     border-radius: var(--radius-sm);
+    color: var(--ink);
   }
 
   .reply-form input:focus {
@@ -548,20 +580,17 @@
     border-color: var(--accent);
   }
 
-  .reply-form button {
-    border: 1px solid var(--ink);
+  .reply-submit-btn {
+    padding: 8px 14px;
     background: var(--ink);
     color: var(--bg);
-    padding: 0 14px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
     border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
     transition: opacity var(--transition-fast);
   }
 
-  .reply-form button:disabled {
+  .reply-submit-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }

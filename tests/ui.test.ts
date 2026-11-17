@@ -161,7 +161,7 @@ describe('UI & Svelte 5 Components', () => {
       });
 
       expect(html).toContain('afterglow');
-      expect(html).toContain('✦');
+      expect(html).toContain('brand-mark');
     });
   });
 
