@@ -61,7 +61,7 @@
           aria-label="Install web application"
           title="Install Afterglow"
         >
-          <Icon name="device" size={14} />
+          <Icon name="device" size={13} />
           <span class="install-label">App</span>
         </button>
       {/if}
@@ -75,9 +75,9 @@
         title="Switch to {theme === 'light' ? 'dark' : 'light'} theme"
       >
         {#if theme === 'light'}
-          <Icon name="moon" size={15} />
+          <Icon name="moon" size={14} />
         {:else}
-          <Icon name="sun" size={15} />
+          <Icon name="sun" size={14} />
         {/if}
       </button>
 
@@ -103,7 +103,7 @@
           onclick={onAuthClick}
         >
           <Icon name="key" size={13} />
-          <span>Passkey</span>
+          <span>Sign in</span>
         </button>
       {/if}
     </nav>
@@ -115,7 +115,7 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    background-color: var(--surface);
+    background-color: var(--bg);
     border-bottom: 1px solid var(--line);
     transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
   }
@@ -124,23 +124,22 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 54px;
+    height: 50px;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--ink);
     transition: opacity var(--transition-fast);
   }
 
   .brand:hover {
-    opacity: 0.85;
+    opacity: 0.8;
   }
 
   .brand-mark {
@@ -150,11 +149,10 @@
   }
 
   .brand-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: var(--radius-xs);
-    background: var(--amber);
-    box-shadow: var(--amber-glow);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ink);
   }
 
   .brand-name {
@@ -170,40 +168,39 @@
   .nav-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
+    gap: 5px;
+    padding: 5px 9px;
+    border-radius: var(--radius-xs);
+    font-size: 11px;
     font-weight: 500;
     color: var(--ink-secondary);
-    background: var(--surface-subtle);
+    background: transparent;
     border: 1px solid var(--line);
     transition: all var(--transition-fast);
   }
 
   .nav-action-btn:hover {
-    background: var(--surface-hover);
+    background: var(--surface-subtle);
     color: var(--ink);
-    border-color: var(--line-strong);
   }
 
   .icon-button {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-xs);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--muted);
-    background: var(--surface-subtle);
-    border: 1px solid var(--line);
+    background: transparent;
+    border: 1px solid transparent;
     transition: all var(--transition-fast);
   }
 
   .icon-button:hover {
     color: var(--ink);
-    background: var(--surface-hover);
-    border-color: var(--line-strong);
+    background: var(--surface-subtle);
+    border-color: var(--line);
   }
 
   .user-menu {
@@ -214,31 +211,31 @@
   }
 
   .avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: var(--radius-sm);
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-xs);
     background: var(--surface-subtle);
-    color: var(--amber);
+    color: var(--ink);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--line);
   }
 
   .avatar-small {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
   }
 
   .user-name {
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     color: var(--ink-secondary);
-    max-width: 140px;
+    max-width: 130px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -247,7 +244,7 @@
   .logout-button {
     font-size: 11px;
     color: var(--muted);
-    padding: 4px 6px;
+    padding: 3px 6px;
     border-radius: var(--radius-xs);
     transition: color var(--transition-fast);
   }
@@ -259,11 +256,11 @@
   .auth-button {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: var(--radius-xs);
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 500;
     background: var(--ink);
     color: var(--bg);
     border: 1px solid var(--ink);
@@ -271,7 +268,7 @@
   }
 
   .auth-button:hover {
-    opacity: 0.9;
+    opacity: 0.85;
   }
 
   @media (max-width: 600px) {
