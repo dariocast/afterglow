@@ -2,6 +2,20 @@ export interface User {
   id: string;
   username: string;
   displayName: string;
+  bio?: string | null;
+  avatarColor?: string | null;
+  createdAt?: string | Date;
+}
+
+export interface UserProfile extends User {
+  isFollowing: boolean | null;
+  activeMoments: Post[];
+}
+
+export interface ProfileUpdateInput {
+  bio?: string;
+  displayName?: string;
+  avatarColor?: string;
 }
 
 export type ReactionKind = 'glow' | 'warm' | 'thought';
@@ -34,7 +48,7 @@ export interface Post {
   replies: Reply[];
 }
 
-export type FeedFilter = 'all' | 'ending' | 'mine';
+export type FeedFilter = 'all' | 'following' | 'ending' | 'mine';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -146,5 +160,35 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(response),
     });
+  },
+
+  // Users & Social Graph
+  async fetchUserProfile(username: string): Promise<UserProfile> {
+    return request<UserProfile>(`/api/users/${encodeURIComponent(username)}`);
+  },
+
+  async updateProfile(data: ProfileUpdateInput): Promise<User> {
+    return request<User>('/api/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async followUser(userId: string): Promise<{ success: boolean; isFollowing: boolean }> {
+    return request<{ success: boolean; isFollowing: boolean }>(
+      `/api/users/${encodeURIComponent(userId)}/follow`,
+      {
+        method: 'POST',
+      }
+    );
+  },
+
+  async unfollowUser(userId: string): Promise<{ success: boolean; isFollowing: boolean }> {
+    return request<{ success: boolean; isFollowing: boolean }>(
+      `/api/users/${encodeURIComponent(userId)}/follow`,
+      {
+        method: 'DELETE',
+      }
+    );
   },
 };

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { authStore } from '../src/lib/auth.svelte';
-import { api, type User } from '../src/lib/api';
+import { api, type User, type UserProfile } from '../src/lib/api';
 
 vi.mock('@simplewebauthn/browser', () => ({
   startRegistration: vi.fn(),
@@ -122,5 +122,209 @@ describe('authStore (Svelte 5 runes)', () => {
   it('requires username for passkey registration', async () => {
     await expect(authStore.registerWithPasskey('   ')).rejects.toThrow('Username is required');
     expect(authStore.error).toBe('Username is required');
+  });
+
+  it('updateProfile() calls API and updates currentUser with bio and avatarColor', async () => {
+    vi.spyOn(api, 'getCurrentUser').mockResolvedValue(mockUser);
+    await authStore.checkSession();
+
+    const updatedUser: User = {
+      ...mockUser,
+      displayName: 'Clara O.',
+      bio: 'Collecting quiet mornings.',
+      avatarColor: '#a26a42',
+    };
+    const updateSpy = vi.spyOn(api, 'updateProfile').mockResolvedValue(updatedUser);
+
+    const res = await authStore.updateProfile({
+      displayName: 'Clara O.',
+      bio: 'Collecting quiet mornings.',
+      avatarColor: '#a26a42',
+    });
+
+    expect(updateSpy).toHaveBeenCalledWith({
+      displayName: 'Clara O.',
+      bio: 'Collecting quiet mornings.',
+      avatarColor: '#a26a42',
+    });
+    expect(res).toEqual(updatedUser);
+    expect(authStore.currentUser).toEqual(updatedUser);
+    expect(authStore.isLoading).toBe(false);
+    expect(authStore.error).toBeNull();
+  });
+
+  it('updateProfile() sets error and keeps currentUser when API rejects', async () => {
+    vi.spyOn(api, 'getCurrentUser').mockResolvedValue(mockUser);
+    await authStore.checkSession();
+
+    vi.spyOn(api, 'updateProfile').mockRejectedValue(new Error('Bio exceeds 160 characters'));
+
+    await expect(authStore.updateProfile({ bio: 'x'.repeat(161) })).rejects.toThrow(
+      'Bio exceeds 160 characters'
+    );
+
+    expect(authStore.error).toBe('Bio exceeds 160 characters');
+    expect(authStore.currentUser).toEqual(mockUser);
+    expect(authStore.isLoading).toBe(false);
+  });
+});
+
+describe('api profile, follow, and filter client methods', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('fetchUserProfile() requests GET /api/users/:username and returns profile', async () => {
+    const mockProfile: UserProfile = {
+      id: 'u-1',
+      username: 'maya writes',
+      displayName: 'Maya Chen',
+      bio: 'Quiet notes.',
+      avatarColor: '#a26a42',
+      createdAt: '2026-11-17T10:00:00.000Z',
+      isFollowing: true,
+      activeMoments: [],
+    };
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(mockProfile), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    const profile = await api.fetchUserProfile('maya writes');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/users/maya%20writes',
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+      })
+    );
+    expect(profile).toEqual(mockProfile);
+  });
+
+  it('fetchUserProfile() throws error message on 404', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    await expect(api.fetchUserProfile('nonexistent')).rejects.toThrow('User not found');
+  });
+
+  it('updateProfile() sends PATCH /api/users/me and returns updated user', async () => {
+    const updated: User = {
+      id: 'u-1',
+      username: 'clara',
+      displayName: 'Clara O.',
+      bio: 'Evening tea.',
+      avatarColor: '#5a7d65',
+    };
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(updated), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    const payload = { bio: 'Evening tea.', displayName: 'Clara O.', avatarColor: '#5a7d65' };
+    const result = await api.updateProfile(payload);
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/users/me',
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      })
+    );
+    expect(result).toEqual(updated);
+  });
+
+  it('updateProfile() throws error message on 401', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    await expect(api.updateProfile({ bio: 'Hello' })).rejects.toThrow('Unauthorized');
+  });
+
+  it('followUser() sends POST /api/users/:id/follow and handles 401/404', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true, isFollowing: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    const res = await api.followUser('user/42');
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/users/user%2F42/follow',
+      expect.objectContaining({ method: 'POST' })
+    );
+    expect(res).toEqual({ success: true, isFollowing: true });
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'User not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+    await expect(api.followUser('missing')).rejects.toThrow('User not found');
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+    await expect(api.followUser('user-1')).rejects.toThrow('Unauthorized');
+  });
+
+  it('unfollowUser() sends DELETE /api/users/:id/follow and handles 401', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true, isFollowing: false }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    const res = await api.unfollowUser('user/42');
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/users/user%2F42/follow',
+      expect.objectContaining({ method: 'DELETE' })
+    );
+    expect(res).toEqual({ success: true, isFollowing: false });
+
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+    await expect(api.unfollowUser('user-42')).rejects.toThrow('Unauthorized');
+  });
+
+  it('getPosts() supports following filter', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+
+    const posts = await api.getPosts('following');
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/api/posts?filter=following',
+      expect.any(Object)
+    );
+    expect(posts).toEqual([]);
   });
 });

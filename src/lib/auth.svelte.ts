@@ -1,4 +1,4 @@
-import { api, type User } from './api';
+import { api, type User, type ProfileUpdateInput } from './api';
 import {
   startRegistration,
   startAuthentication,
@@ -95,6 +95,22 @@ class AuthStore {
       console.warn('Logout API error:', err);
     } finally {
       this.currentUser = null;
+      this.isLoading = false;
+    }
+  }
+
+  async updateProfile(data: ProfileUpdateInput): Promise<User> {
+    this.isLoading = true;
+    this.error = null;
+    try {
+      const updatedUser = await api.updateProfile(data);
+      this.currentUser = updatedUser;
+      return updatedUser;
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to update profile';
+      this.error = msg;
+      throw err;
+    } finally {
       this.isLoading = false;
     }
   }
