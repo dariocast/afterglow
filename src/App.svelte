@@ -61,16 +61,29 @@
   async function loadFeed(filter: FeedFilter) {
     fetchError = null;
     try {
+      if (filter === 'mine' && !authStore.currentUser) {
+        posts = [];
+        return;
+      }
       posts = await api.getPosts(filter);
     } catch (err: any) {
+      if (filter === 'mine' && (err.message === 'Unauthorized' || err.message?.includes('401'))) {
+        posts = [];
+        return;
+      }
       console.error('Failed to load posts:', err);
-      fetchError = 'Unable to reach the living room. Please try again.';
+      fetchError = 'Unable to load moments. Please try again.';
       posts = [];
     }
   }
 
   async function handleFilterChange(filter: FeedFilter) {
     activeFilter = filter;
+    if (filter === 'mine' && !authStore.currentUser) {
+      posts = [];
+      openAuthModal('login');
+      return;
+    }
     isLoading = true;
     await loadFeed(filter);
     isLoading = false;
@@ -217,16 +230,31 @@
         </div>
       {:else if posts.length === 0}
         <div id="empty-state" class="empty-state">
-          <p class="empty-title">No moments here yet.</p>
-          <p class="empty-subtitle">Moments naturally dissolve when their time arrives.</p>
-          {#if activeFilter !== 'all'}
+          {#if activeFilter === 'mine' && !authStore.currentUser}
+            <p class="empty-title">Your moments</p>
+            <p class="empty-subtitle">Sign in with a passkey to view and manage your moments.</p>
             <button
               class="reset-btn"
               type="button"
-              onclick={() => handleFilterChange('all')}
+              onclick={() => openAuthModal('login')}
             >
-              See all active moments
+              Sign in with Passkey
             </button>
+          {:else if activeFilter === 'mine'}
+            <p class="empty-title">No moments yet</p>
+            <p class="empty-subtitle">You haven't posted any moments yet.</p>
+          {:else}
+            <p class="empty-title">No moments here yet.</p>
+            <p class="empty-subtitle">Moments naturally dissolve when their time arrives.</p>
+            {#if activeFilter !== 'all'}
+              <button
+                class="reset-btn"
+                type="button"
+                onclick={() => handleFilterChange('all')}
+              >
+                See all active moments
+              </button>
+            {/if}
           {/if}
         </div>
       {:else}
@@ -248,8 +276,8 @@
 
   <footer class="footer">
     <div class="shell footer-inner">
-      <span>afterglow / a quiet kind of social</span>
-      <span>your moments are yours</span>
+      <span>afterglow</span>
+      <span>finite moments</span>
     </div>
   </footer>
 
